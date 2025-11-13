@@ -110,11 +110,18 @@ class MenuService:
     def update_dish(self, dish_id: int, **fields) -> Dish:
         dish = self.get_dish_detail(dish_id)
         if not dish:
-            raise ValueError(f\"菜品不存在：dish_id={dish_id}\")
+            raise ValueError(f"菜品不存在：dish_id={dish_id}")
         for k, v in fields.items():
             if v is not None and hasattr(dish, k):
                 setattr(dish, k, v)
         self.db.commit()
         self.db.refresh(dish)
         return dish
+
+    def delete_dish(self, dish_id: int) -> None:
+        dish = self.get_dish_detail(dish_id)
+        if not dish:
+            return
+        self.db.delete(dish)
+        self.db.commit()
 

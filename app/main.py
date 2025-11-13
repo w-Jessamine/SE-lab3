@@ -21,6 +21,8 @@ app.include_router(admin.router)
 
 # 配置模板
 templates = Jinja2Templates(directory="app/pages")
+# 静态资源（用于菜品图片）
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 
 @app.on_event("startup")

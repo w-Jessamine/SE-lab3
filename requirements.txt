@@ -24,4 +24,5 @@ pylint==3.0.3
 
 # 工具
 python-dotenv==1.0.0
+requests==2.32.3
 
