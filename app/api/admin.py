@@ -138,6 +138,19 @@ def complete_order(order_id: int, db: Session = Depends(get_db)):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@router.post("/orders/{order_id}/cancel", status_code=204)
+def cancel_order(order_id: int, db: Session = Depends(get_db)):
+    """
+    取消订单
+    前置条件：status in [Created, Submitted]
+    后置条件：status = Cancelled
+    """
+    service = OrderService(db)
+    try:
+        service.cancel_order(order_id)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 # ------- Category CRUD -------
 @router.get("/categories")
 def list_categories(db: Session = Depends(get_db)):
