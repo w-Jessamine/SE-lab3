@@ -81,6 +81,19 @@
             font-size: 14px;
             color: #666;
         }
+        .delete-btn {
+            background: #FF4444;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .delete-btn:hover {
+            background: #FF3333;
+        }
         .subtotal {
             font-size: 14px;
             color: #666;
@@ -238,6 +251,7 @@
             <div>
                 <span class="header-title">购物车</span>
                 <span class="item-count" id="itemCount">共0件</span>
+                <span class="item-count" style="margin-left:10px;">👥 <span id="diningCountDisplay">2</span>人</span>
             </div>
         </div>
 
@@ -292,6 +306,9 @@
         async function loadCartDetails() {
             const savedCart = localStorage.getItem('cart');
             const savedUser = localStorage.getItem('currentUser');
+            const savedDiningCount = localStorage.getItem('diningCount') || '2';
+            
+            document.getElementById('diningCountDisplay').textContent = savedDiningCount;
             
             if (!savedCart || !savedUser) {
                 alert('购物车为空或未登录！');
@@ -302,7 +319,7 @@
             cart = JSON.parse(savedCart);
             currentUser = JSON.parse(savedUser);
             
-            if (Object.keys(cart).length === 0) {
+            if (cart.length === 0) {
                 alert('购物车为空！');
                 window.location.href = '/';
                 return;
@@ -314,7 +331,8 @@
             const container = document.getElementById('cartContainer');
             container.innerHTML = '';
             
-            for (const item of cart) {
+            for (let idx = 0; idx < cart.length; idx++) {
+                const item = cart[idx];
                 try {
                     const res = await fetch(`/api/dishes/${item.dish_id}`);
                     const dish = await res.json();
@@ -342,7 +360,10 @@
                             </div>
                             <div class="item-desc">${item.remark ? item.remark : '标准份'}</div>
                             <div class="item-footer">
-                                <div class="qty-label">数量：${item.qty}</div>
+                                <div>
+                                    <span class="qty-label">数量：${item.qty}</span>
+                                    <button class="delete-btn" onclick="deleteCartItem(${idx})">删除</button>
+                                </div>
                                 <div class="subtotal">
                                     小计 <span class="subtotal-price">¥${subtotal.toFixed(2)}</span>
                                 </div>
@@ -402,6 +423,19 @@
                 
             } catch (error) {
                 alert('下单失败：' + error.message);
+            }
+        }
+
+        function deleteCartItem(index) {
+            if (confirm('确定要删除这个菜品吗？')) {
+                cart.splice(index, 1);
+                localStorage.setItem('cart', JSON.stringify(cart));
+                if (cart.length === 0) {
+                    alert('购物车已空，返回首页');
+                    window.location.href = '/';
+                } else {
+                    loadCartDetails();
+                }
             }
         }
 

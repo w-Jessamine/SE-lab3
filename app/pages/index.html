@@ -150,10 +150,10 @@
             border-radius: 20px;
             font-size: 14px;
         }
-        .search-box::before {
+        .search-box::after {
             content: "🔍";
             position: absolute;
-            left: 15px;
+            right: 15px;
             top: 50%;
             transform: translateY(-50%);
         }
@@ -357,6 +357,41 @@
         .qty-display { min-width: 40px; text-align: center; font-weight: 700; }
         .primary-btn { width: 100%; margin-top: 12px; padding: 12px; border: none; background: #FF8855; color: #fff; border-radius: 10px; font-weight: 700; cursor: pointer; }
         .primary-btn:hover { background: #FF7744; }
+        
+        /* 就餐人数选择 */
+        .dining-count-btn {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            z-index: 50;
+        }
+        .dining-count-btn:hover {
+            background: #FFF5F0;
+        }
+        .dining-selector {
+            display: flex;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .count-option {
+            padding: 8px 16px;
+            border: 1px solid #E5E5E5;
+            border-radius: 8px;
+            cursor: pointer;
+            background: white;
+        }
+        .count-option.active {
+            background: #FF8855;
+            color: white;
+            border-color: #FF8855;
+        }
     </style>
 </head>
 <body>
@@ -389,6 +424,11 @@
         </div>
     </div>
 
+    <!-- 就餐人数按钮 -->
+    <div class="dining-count-btn" onclick="showDiningCountModal()">
+        👥 <span id="diningCountDisplay">2</span>人
+    </div>
+
     <!-- 搜索栏 -->
     <div class="search-section">
         <div class="search-box">
@@ -398,7 +438,7 @@
 
     <!-- 分类标签 -->
     <div class="categories" id="categories">
-        <button class="category-tag active" onclick="selectCategory(null)">特色菜</button>
+        <button class="category-tag active" onclick="selectCategory(null)">全部</button>
     </div>
 
     <!-- 菜品列表 -->
@@ -410,10 +450,32 @@
         <div class="cart-count" id="cartCount">0</div>
     </div>
 
+    <!-- 就餐人数选择弹窗 -->
+    <div id="diningModal" class="modal-mask">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="modal-title">选择就餐人数</div>
+          <button onclick="closeDiningModal()" style="border:none;background:none;font-size:24px;color:#999;cursor:pointer;">&times;</button>
+        </div>
+        <div class="dining-selector">
+          <button class="count-option" onclick="selectDiningCount(1)">1人</button>
+          <button class="count-option active" onclick="selectDiningCount(2)">2人</button>
+          <button class="count-option" onclick="selectDiningCount(3)">3人</button>
+          <button class="count-option" onclick="selectDiningCount(4)">4人</button>
+          <button class="count-option" onclick="selectDiningCount(5)">5人</button>
+          <button class="count-option" onclick="selectDiningCount(6)">6人</button>
+        </div>
+        <button class="primary-btn" onclick="confirmDiningCount()">确定</button>
+      </div>
+    </div>
+
     <!-- 菜品详情弹窗 -->
-    <div id="detailModal" class="modal-mask">
-      <div class="modal">
-        <div class="modal-title" id="detailTitle">选择口味与数量</div>
+    <div id="detailModal" class="modal-mask" onclick="closeDetailIfClickOutside(event)">
+      <div class="modal" onclick="event.stopPropagation()">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div class="modal-title" id="detailTitle">选择口味与数量</div>
+          <button onclick="closeDetailModal()" style="border:none;background:none;font-size:24px;color:#999;cursor:pointer;">&times;</button>
+        </div>
         <div id="detailOptions"></div>
         <div class="option-group">
           <div class="opt-title">备注</div>
@@ -432,6 +494,7 @@
     <script>
         let currentUser = null;
         let currentCategory = null;
+        let diningCount = 2; // 就餐人数，默认2人
         // 购物车改为明细数组：[{dish_id, qty, option_item_ids:[], remark}]
         let cart = [];
         let currentDish = null; // 弹窗中正在配置的菜品
@@ -445,6 +508,32 @@
 
         function hideLogin() {
             document.getElementById('loginModal').classList.remove('active');
+        }
+        
+        // 就餐人数选择
+        function showDiningCountModal() {
+            document.getElementById('diningModal').classList.add('active');
+            // 高亮当前选择
+            document.querySelectorAll('.count-option').forEach((btn, idx) => {
+                btn.classList.toggle('active', (idx + 1) === diningCount);
+            });
+        }
+        
+        function closeDiningModal() {
+            document.getElementById('diningModal').classList.remove('active');
+        }
+        
+        function selectDiningCount(count) {
+            diningCount = count;
+            document.querySelectorAll('.count-option').forEach((btn, idx) => {
+                btn.classList.toggle('active', (idx + 1) === count);
+            });
+        }
+        
+        function confirmDiningCount() {
+            document.getElementById('diningCountDisplay').textContent = diningCount;
+            localStorage.setItem('diningCount', diningCount);
+            closeDiningModal();
         }
 
         async function handleLogin(event) {
@@ -483,7 +572,7 @@
                 const categories = await res.json();
                 const container = document.getElementById('categories');
                 
-                container.innerHTML = '<button class="category-tag active" onclick="selectCategory(null)">特色菜</button>';
+                container.innerHTML = '<button class="category-tag active" onclick="selectCategory(null)">全部</button>';
                 categories.forEach(cat => {
                     const btn = document.createElement('button');
                     btn.className = 'category-tag';
@@ -603,12 +692,43 @@
             detailQty = Math.max(1, detailQty + delta);
             document.getElementById('detailQty').textContent = detailQty;
         }
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('active');
+        }
+        
+        function closeDetailIfClickOutside(event) {
+            if (event.target.id === 'detailModal') {
+                closeDetailModal();
+            }
+        }
+        
         function confirmAddToCart(){
             const remark = document.getElementById('detailRemark').value.trim();
-            cart.push({ dish_id: currentDish, qty: detailQty, option_item_ids: Array.from(selectedOptionIds), remark });
+            const newItem = { 
+                dish_id: currentDish, 
+                qty: detailQty, 
+                option_item_ids: Array.from(selectedOptionIds).sort(), 
+                remark 
+            };
+            
+            // 尝试合并：dish_id相同 && option_item_ids相同 && remark相同
+            const existingIndex = cart.findIndex(item => 
+                item.dish_id === newItem.dish_id &&
+                item.remark === newItem.remark &&
+                JSON.stringify(item.option_item_ids.sort()) === JSON.stringify(newItem.option_item_ids)
+            );
+            
+            if (existingIndex >= 0) {
+                // 合并数量
+                cart[existingIndex].qty += newItem.qty;
+            } else {
+                // 新增
+                cart.push(newItem);
+            }
+            
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
-            document.getElementById('detailModal').classList.remove('active');
+            closeDetailModal();
             loadDishes();
         }
 
@@ -632,6 +752,16 @@
         // 初始化
         window.onload = () => {
             console.log('页面加载完成，开始初始化...');
+            
+            // 恢复就餐人数
+            const savedDiningCount = localStorage.getItem('diningCount');
+            if (savedDiningCount) {
+                diningCount = parseInt(savedDiningCount);
+                document.getElementById('diningCountDisplay').textContent = diningCount;
+            } else {
+                // 首次访问，显示选择人数弹窗
+                setTimeout(() => showDiningCountModal(), 500);
+            }
             
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
