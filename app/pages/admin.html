@@ -561,13 +561,8 @@
                 <div class="table-section">
                     <div class="section-header">
                         <div class="section-title">菜品列表</div>
-                        <div class="filter-tabs">
-                            <button class="filter-tab active">全部品类</button>
-                            <button class="filter-tab">特色菜</button>
-                            <button class="filter-tab">肉类</button>
-                            <button class="filter-tab">素菜</button>
-                            <button class="filter-tab">酒水</button>
-                            <button class="filter-tab">主食</button>
+                        <div class="filter-tabs" id="dishCategoryTabs">
+                            <button class="filter-tab active" data-category-id="" onclick="filterDishes('')">全部品类</button>
                         </div>
                     </div>
                     <div class="dishes-grid" id="dishesGrid"></div>
@@ -631,6 +626,7 @@
                 
                 loadDashboardData();
                 loadOrders();
+                initDishCategories();
                 loadDishes();
                 loadInventory();
             } catch (error) {
@@ -744,6 +740,27 @@
                 btn.classList.toggle('active', statuses[idx] === status);
             });
             loadOrders(status);
+        }
+
+        async function initDishCategories() {
+            try {
+                const catRes = await fetch('/api/categories');
+                const categories = await catRes.json();
+                
+                const tabsContainer = document.getElementById('dishCategoryTabs');
+                tabsContainer.innerHTML = '<button class="filter-tab active" data-category-id="" onclick="filterDishes(\'\')">全部品类</button>';
+                
+                categories.forEach(cat => {
+                    const btn = document.createElement('button');
+                    btn.className = 'filter-tab';
+                    btn.setAttribute('data-category-id', cat.category_id);
+                    btn.textContent = cat.name;
+                    btn.onclick = () => filterDishes(cat.category_id);
+                    tabsContainer.appendChild(btn);
+                });
+            } catch (error) {
+                console.error('加载分类失败:', error);
+            }
         }
 
         async function loadDishes(categoryId = '') {
