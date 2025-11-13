@@ -849,6 +849,7 @@
         }
 
         let currentDishCategoryFilter = '';
+        let currentInventoryFilter = '';
         
         async function initDishCategories() {
             try {
@@ -1070,6 +1071,9 @@
         }
 
         function filterInventory(filter) {
+            // 保存当前筛选状态
+            currentInventoryFilter = filter;
+            
             // 更新筛选按钮状态
             document.querySelectorAll('#inventory .filter-tab').forEach((btn, idx) => {
                 const filters = ['', '充足', '预警', '售罄'];
@@ -1103,7 +1107,8 @@
                 if (res.ok) {
                     alert(`✅ 已批量调整 ${ids.length} 个菜品的库存！`);
                     document.getElementById('batchIds').value = '';
-                    loadInventory();
+                    // 保持当前筛选状态
+                    loadInventory(currentInventoryFilter);
                 } else {
                     const error = await res.json();
                     alert('调整失败：' + error.detail);
@@ -1120,7 +1125,8 @@
                 });
                 
                 if (res.ok) {
-                    loadInventory();
+                    // 保持当前筛选状态
+                    loadInventory(currentInventoryFilter);
                 } else {
                     const error = await res.json();
                     alert('调整失败：' + error.detail);
