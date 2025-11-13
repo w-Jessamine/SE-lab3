@@ -459,6 +459,9 @@
                 <div class="menu-item" onclick="switchSection('inventory')">
                     <span>📦</span> <span>库存管理</span>
                 </div>
+                <div class="menu-item" onclick="switchSection('settings')">
+                    <span>⚙️</span> <span>店铺设置</span>
+                </div>
             </div>
         </div>
 
@@ -597,6 +600,49 @@
                 </div>
                 <div class="dishes-grid" id="inventoryGrid"></div>
             </div>
+
+            <!-- 店铺设置 -->
+            <div class="content-section" id="settings">
+                <div class="top-bar">
+                    <div class="page-title">店铺设置</div>
+                </div>
+
+                <div style="background:white;border-radius:12px;padding:30px;margin:20px;max-width:800px;">
+                    <div style="margin-bottom:40px;">
+                        <h3 style="color:#FF8855;margin-bottom:20px;font-size:18px;">营业状态</h3>
+                        <div style="display:flex;gap:15px;">
+                            <button id="btnOpen" class="submit-btn" style="background:#4CAF50;flex:1;" onclick="toggleBusinessStatus('open')">营业中</button>
+                            <button id="btnClosed" class="submit-btn" style="background:#999;flex:1;" onclick="toggleBusinessStatus('closed')">切换至休息</button>
+                        </div>
+                        <div id="statusDisplay" style="margin-top:15px;padding:15px;background:#F0F8FF;border-radius:8px;text-align:center;font-size:16px;font-weight:bold;color:#4CAF50;">
+                            当前状态：营业中
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 style="color:#FF8855;margin-bottom:20px;font-size:18px;">菜品分类管理</h3>
+                        <div style="background:#FFF5F0;padding:20px;border-radius:12px;margin-bottom:20px;">
+                            <div style="display:flex;gap:10px;margin-bottom:15px;">
+                                <input type="text" id="newCategoryName" placeholder="输入新分类名称" style="flex:1;padding:10px;border:1px solid #E5E5E5;border-radius:8px;">
+                                <input type="number" id="newCategoryOrder" placeholder="排序" style="width:100px;padding:10px;border:1px solid #E5E5E5;border-radius:8px;" value="1">
+                                <button class="submit-btn" onclick="addCategory()">添加分类</button>
+                            </div>
+                        </div>
+
+                        <table style="width:100%;border-collapse:collapse;">
+                            <thead>
+                                <tr style="background:#F5F5F5;">
+                                    <th style="padding:12px;text-align:left;border-bottom:2px solid #E5E5E5;">分类名称</th>
+                                    <th style="padding:12px;text-align:left;border-bottom:2px solid #E5E5E5;">排序</th>
+                                    <th style="padding:12px;text-align:left;border-bottom:2px solid #E5E5E5;">菜品数量</th>
+                                    <th style="padding:12px;text-align:center;border-bottom:2px solid #E5E5E5;">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categoriesTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -629,6 +675,7 @@
                 initDishCategories();
                 loadDishes();
                 loadInventory();
+                initSettings();
             } catch (error) {
                 alert('登录失败：' + error);
             }
@@ -1106,6 +1153,147 @@
             document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
             event.target.closest('.menu-item').classList.add('active');
         };
+
+        // 店铺设置相关函数
+        let businessStatus = 'open';
+
+        function toggleBusinessStatus(status) {
+            businessStatus = status;
+            const btnOpen = document.getElementById('btnOpen');
+            const btnClosed = document.getElementById('btnClosed');
+            const display = document.getElementById('statusDisplay');
+
+            if (status === 'open') {
+                btnOpen.style.background = '#4CAF50';
+                btnClosed.style.background = '#999';
+                display.textContent = '当前状态：营业中';
+                display.style.background = '#F0F8FF';
+                display.style.color = '#4CAF50';
+            } else {
+                btnOpen.style.background = '#999';
+                btnClosed.style.background = '#FF9800';
+                display.textContent = '当前状态：休息中';
+                display.style.background = '#FFF3E0';
+                display.style.color = '#FF9800';
+            }
+            localStorage.setItem('businessStatus', status);
+        }
+
+        async function loadCategories() {
+            try {
+                const res = await fetch('/api/categories');
+                const categories = await res.json();
+                
+                // 获取每个分类的菜品数量
+                const dishRes = await fetch('/api/dishes?size=100');
+                const dishes = await dishRes.json();
+                const dishCount = {};
+                dishes.forEach(d => {
+                    dishCount[d.category_id] = (dishCount[d.category_id] || 0) + 1;
+                });
+                
+                const tbody = document.getElementById('categoriesTableBody');
+                tbody.innerHTML = categories.map(cat => `
+                    <tr>
+                        <td style="padding:12px;border-bottom:1px solid #E5E5E5;">${cat.name}</td>
+                        <td style="padding:12px;border-bottom:1px solid #E5E5E5;">${cat.sort_order}</td>
+                        <td style="padding:12px;border-bottom:1px solid #E5E5E5;">${dishCount[cat.category_id] || 0}个</td>
+                        <td style="padding:12px;border-bottom:1px solid #E5E5E5;text-align:center;">
+                            <button class="action-btn btn-warning" onclick="editCategory(${cat.category_id}, '${cat.name}', ${cat.sort_order})">编辑</button>
+                            <button class="action-btn btn-danger" onclick="deleteCategory(${cat.category_id})">删除</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('加载分类失败:', error);
+            }
+        }
+
+        async function addCategory() {
+            const name = document.getElementById('newCategoryName').value.trim();
+            const sortOrder = parseInt(document.getElementById('newCategoryOrder').value) || 1;
+            
+            if (!name) {
+                alert('请输入分类名称');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/admin/categories', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name, sort_order: sortOrder })
+                });
+                
+                if (res.ok) {
+                    alert('✅ 分类添加成功！');
+                    document.getElementById('newCategoryName').value = '';
+                    loadCategories();
+                    initDishCategories();
+                } else {
+                    const error = await res.json();
+                    alert('添加失败：' + error.detail);
+                }
+            } catch (error) {
+                alert('添加失败：' + error.message);
+            }
+        }
+
+        function editCategory(catId, currentName, currentOrder) {
+            const newName = prompt('修改分类名称:', currentName);
+            if (!newName || newName === currentName) return;
+            
+            updateCategory(catId, newName, currentOrder);
+        }
+
+        async function updateCategory(catId, name, sortOrder) {
+            try {
+                const res = await fetch(`/api/admin/categories/${catId}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name, sort_order: sortOrder })
+                });
+                
+                if (res.ok) {
+                    alert('✅ 分类更新成功！');
+                    loadCategories();
+                    initDishCategories();
+                } else {
+                    const error = await res.json();
+                    alert('更新失败：' + error.detail);
+                }
+            } catch (error) {
+                alert('更新失败：' + error.message);
+            }
+        }
+
+        async function deleteCategory(catId) {
+            if (!confirm('确认删除此分类？该分类下的菜品将被解除关联。')) return;
+            
+            try {
+                const res = await fetch(`/api/admin/categories/${catId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (res.ok) {
+                    alert('✅ 分类删除成功！');
+                    loadCategories();
+                    initDishCategories();
+                } else {
+                    const error = await res.json();
+                    alert('删除失败：' + error.detail);
+                }
+            } catch (error) {
+                alert('删除失败：' + error.message);
+            }
+        }
+
+        // 初始化店铺设置
+        function initSettings() {
+            const saved = localStorage.getItem('businessStatus') || 'open';
+            toggleBusinessStatus(saved);
+            loadCategories();
+        }
     </script>
 </body>
 </html>
