@@ -1130,62 +1130,6 @@
             }
         }
 
-        async function adjustInventory() {
-            const dishId = document.getElementById('adjustDishId').value;
-            const delta = document.getElementById('adjustDelta').value;
-            
-            if (!dishId || !delta) {
-                alert('请填写完整信息');
-                return;
-            }
-            
-            try {
-                const res = await fetch(`/api/admin/inventory/adjust?dish_id=${dishId}&delta=${delta}`, {
-                    method: 'POST'
-                });
-                
-                if (res.ok) {
-                    alert('✅ 库存调整成功！');
-                    document.getElementById('adjustDishId').value = '';
-                    document.getElementById('adjustDelta').value = '';
-                    loadInventory();
-                } else {
-                    const error = await res.json();
-                    alert('调整失败：' + error.detail);
-                }
-            } catch (error) {
-                alert('调整失败：' + error.message);
-            }
-        }
-
-        async function updateDishStatus() {
-            const dishId = document.getElementById('statusDishId').value;
-            const status = document.getElementById('dishStatus').value;
-            
-            if (!dishId) {
-                alert('请输入菜品ID');
-                return;
-            }
-            
-            try {
-                const res = await fetch(`/api/admin/dishes/${dishId}/status`, {
-                    method: 'PATCH',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({status})
-                });
-                
-                if (res.ok) {
-                    alert('✅ 状态更新成功！');
-                    document.getElementById('statusDishId').value = '';
-                    loadDishes();
-                } else {
-                    const error = await res.json();
-                    alert('更新失败：' + error.detail);
-                }
-            } catch (error) {
-                alert('更新失败：' + error.message);
-            }
-        }
 
         async function completeOrder(orderId) {
             if (!confirm('确认完成此订单？')) return;
@@ -1229,35 +1173,6 @@
             }
         }
 
-        function quickAdjust(dishId, delta) {
-            document.getElementById('adjustDishId').value = dishId;
-            document.getElementById('adjustDelta').value = delta;
-            adjustInventory();
-        }
-        async function adjustBatch(){
-            const text = document.getElementById('batchTextarea').value.trim();
-            if(!text){ alert('请输入批量内容'); return; }
-            const items = [];
-            text.split(/\n+/).forEach(line=>{
-                const parts = line.split(',');
-                if(parts.length===2){
-                    const id = parseInt(parts[0].trim()); const d = parseInt(parts[1].trim());
-                    if(!isNaN(id) && !isNaN(d)) items.push({dish_id:id, delta:d});
-                }
-            });
-            if(items.length===0){ alert('格式不正确'); return; }
-            try{
-                const res = await fetch('/api/admin/inventory/adjust-batch', {
-                    method:'POST',
-                    headers:{'Content-Type':'application/json'},
-                    body: JSON.stringify(items)
-                });
-                if(!res.ok){ const err=await res.json(); alert(err.detail||'失败'); return; }
-                alert('✅ 批量调整成功');
-                document.getElementById('batchTextarea').value='';
-                loadInventory();
-            }catch(e){ alert('失败：'+e.message); }
-        }
         async function showOrderDetail(orderId){
             try{
                 const res = await fetch(`/api/admin/orders/${orderId}`);
