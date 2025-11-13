@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>确认订单 - 点单程序网</title>
+    <title>购物车 - 点单程序网</title>
     <style>
         * {
             margin: 0;
@@ -12,166 +12,275 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #FFF5F0;
             min-height: 100vh;
-            padding: 20px;
+            padding-bottom: 80px;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        
+        /* 顶部 */
+        .header {
             background: white;
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 15px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 15px;
         }
-        h1 {
-            text-align: center;
+        .back-btn {
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
             color: #333;
-            margin-bottom: 30px;
-            font-size: 2em;
         }
-        .order-items {
-            margin-bottom: 30px;
+        .item-count {
+            color: #999;
+            font-size: 14px;
         }
-        .order-item {
+        
+        /* 购物车列表 */
+        .cart-container {
+            padding: 15px;
+        }
+        .cart-item {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .item-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+        .item-price {
+            font-size: 18px;
+            color: #FF8855;
+            font-weight: bold;
+        }
+        .item-desc {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 12px;
+        }
+        .item-footer {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            margin-bottom: 15px;
         }
-        .item-info {
-            flex: 1;
-        }
-        .item-name {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        .item-price {
+        .qty-label {
+            font-size: 14px;
             color: #666;
         }
-        .item-qty {
+        .subtotal {
+            font-size: 14px;
+            color: #666;
+        }
+        .subtotal-price {
+            font-size: 16px;
+            color: #FF8855;
             font-weight: bold;
-            color: #667eea;
-            margin: 0 20px;
         }
-        .item-subtotal {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #333;
-        }
-        .remark-section {
-            margin-bottom: 30px;
-        }
-        .remark-section label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: #333;
-        }
-        .remark-section textarea {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1em;
-            resize: vertical;
-            font-family: inherit;
-        }
+        
+        /* 总计区域 */
         .total-section {
-            padding: 20px;
-            background: #667eea;
-            color: white;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: right;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
         .total-label {
-            font-size: 1.3em;
-            margin-bottom: 10px;
+            font-size: 16px;
+            color: #333;
+            font-weight: bold;
         }
         .total-price {
-            font-size: 2.5em;
+            font-size: 24px;
+            color: #FF8855;
             font-weight: bold;
         }
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-        }
-        .btn {
-            flex: 1;
-            padding: 15px;
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #FF8855;
+            color: white;
             border: none;
             border-radius: 10px;
-            font-size: 1.1em;
+            font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s;
         }
-        .btn-back {
-            background: #f0f0f0;
-            color: #333;
+        .submit-btn:hover {
+            background: #FF7744;
         }
-        .btn-back:hover {
-            background: #e0e0e0;
-        }
-        .btn-submit {
-            background: #667eea;
-            color: white;
-        }
-        .btn-submit:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-        }
-        .notice {
+        
+        /* 成功页面 */
+        .success-page {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
             text-align: center;
-            padding: 15px;
-            background: #fff3cd;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            color: #856404;
         }
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-            .order-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-            .item-qty {
-                margin: 10px 0;
-            }
+        .success-page.active {
+            display: flex;
+        }
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            color: white;
+            margin-bottom: 20px;
+        }
+        .success-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .success-tip {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 30px;
+        }
+        .order-number {
+            font-size: 20px;
+            color: #FF8855;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .order-details {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .detail-label {
+            color: #666;
+        }
+        .detail-value {
+            color: #333;
+            font-weight: 500;
+        }
+        .back-home-btn {
+            padding: 12px 40px;
+            background: #FF8855;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .back-home-btn:hover {
+            background: #FF7744;
+        }
+        .view-order-link {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #FF8855;
+            cursor: pointer;
+        }
+        
+        .payment-notice {
+            background: #FFF3CD;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 15px;
+            font-size: 13px;
+            color: #856404;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📋 确认订单</h1>
-        
-        <div class="notice">
-            ⚠️ 系统不涉及在线支付，订单生成后请线下付款
+    <!-- 购物车页面 -->
+    <div id="cartPage">
+        <div class="header">
+            <span class="back-btn" onclick="goBack()">←</span>
+            <div>
+                <span class="header-title">购物车</span>
+                <span class="item-count" id="itemCount">共0件</span>
+            </div>
         </div>
-        
-        <div class="order-items" id="orderItems"></div>
-        
-        <div class="remark-section">
-            <label for="remark">备注说明（可选）</label>
-            <textarea id="remark" rows="3" placeholder="口味要求、餐具数量等..."></textarea>
+
+        <div class="payment-notice">
+            ⚠️ 请将收银后出示订单号完成付款，系统不涉及在线支付
         </div>
-        
+
+        <div class="cart-container" id="cartContainer"></div>
+
         <div class="total-section">
-            <div class="total-label">订单总价</div>
-            <div class="total-price" id="totalPrice">¥0.00</div>
+            <div class="total-row">
+                <span class="total-label">合计金额</span>
+                <span class="total-price" id="totalPrice">¥0</span>
+            </div>
+            <button class="submit-btn" onclick="submitOrder()">提交订单</button>
+        </div>
+    </div>
+
+    <!-- 订单成功页面 -->
+    <div class="success-page" id="successPage">
+        <div class="success-icon">✓</div>
+        <div class="success-title">订单提交成功！</div>
+        <div class="success-tip">请到收银台出示订单号完成线下付款</div>
+        
+        <div class="order-number" id="orderNumber">#A2025103001</div>
+        
+        <div class="order-details" id="orderDetails">
+            <div class="detail-row">
+                <span class="detail-label">下单时间</span>
+                <span class="detail-value" id="orderTime"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">菜品数量</span>
+                <span class="detail-value" id="orderCount"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">订单金额</span>
+                <span class="detail-value" style="color: #FF8855; font-weight: bold;" id="orderTotal"></span>
+            </div>
         </div>
         
-        <div class="action-buttons">
-            <button class="btn btn-back" onclick="goBack()">返回修改</button>
-            <button class="btn btn-submit" onclick="submitOrder()">提交订单</button>
-        </div>
+        <a href="/" class="back-home-btn">返回首页</a>
+        <div class="view-order-link">查看订单详情 →</div>
     </div>
 
     <script>
@@ -200,7 +309,8 @@
             
             // 加载菜品详情
             let total = 0;
-            const container = document.getElementById('orderItems');
+            let itemCount = 0;
+            const container = document.getElementById('cartContainer');
             container.innerHTML = '';
             
             for (const [dishId, qty] of Object.entries(cart)) {
@@ -211,14 +321,21 @@
                     
                     const subtotal = dish.price * qty;
                     total += subtotal;
+                    itemCount += qty;
                     
                     container.innerHTML += `
-                        <div class="order-item">
-                            <div class="item-info">
+                        <div class="cart-item">
+                            <div class="item-header">
                                 <div class="item-name">${dish.name}</div>
-                                <div class="item-price">¥${dish.price} × ${qty}</div>
+                                <div class="item-price">¥${dish.price}</div>
                             </div>
-                            <div class="item-subtotal">¥${subtotal.toFixed(2)}</div>
+                            <div class="item-desc">标准份 • 辣度中</div>
+                            <div class="item-footer">
+                                <div class="qty-label">数量：${qty}</div>
+                                <div class="subtotal">
+                                    小计 <span class="subtotal-price">¥${subtotal.toFixed(2)}</span>
+                                </div>
+                            </div>
                         </div>
                     `;
                 } catch (error) {
@@ -226,12 +343,11 @@
                 }
             }
             
+            document.getElementById('itemCount').textContent = `共${itemCount}件`;
             document.getElementById('totalPrice').textContent = `¥${total.toFixed(2)}`;
         }
 
         async function submitOrder() {
-            const remark = document.getElementById('remark').value;
-            
             const items = Object.entries(cart).map(([dishId, qty]) => ({
                 dish_id: parseInt(dishId),
                 qty: qty,
@@ -240,7 +356,7 @@
             
             const orderData = {
                 user_id: currentUser.user_id,
-                remark: remark,
+                remark: "",
                 items: items
             };
             
@@ -261,8 +377,16 @@
                 // 清空购物车
                 localStorage.removeItem('cart');
                 
-                alert(`✅ 下单成功！\n订单号: ${order.order_id}\n总价: ¥${order.total_price}\n\n请线下付款`);
-                window.location.href = '/';
+                // 显示成功页面
+                document.getElementById('cartPage').style.display = 'none';
+                document.getElementById('successPage').classList.add('active');
+                
+                // 填充订单信息
+                document.getElementById('orderNumber').textContent = `#A${order.order_id.toString().padStart(12, '0')}`;
+                document.getElementById('orderTime').textContent = new Date().toLocaleString('zh-CN');
+                document.getElementById('orderCount').textContent = `${Object.keys(cart).length}件`;
+                document.getElementById('orderTotal').textContent = `¥${order.total_price}`;
+                
             } catch (error) {
                 alert('下单失败：' + error.message);
             }
@@ -276,4 +400,3 @@
     </script>
 </body>
 </html>
-

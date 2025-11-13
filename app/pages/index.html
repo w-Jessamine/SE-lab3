@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>点单程序网 - 菜品浏览</title>
+    <title>点单程序网</title>
     <style>
         * {
             margin: 0;
@@ -11,247 +11,378 @@
             box-sizing: border-box;
         }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", sans-serif;
+            background: #FFF5F0;
             min-height: 100vh;
-            padding: 20px;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+        
+        /* 登录弹窗 */
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .login-modal.active {
+            display: flex;
+        }
+        .login-box {
             background: white;
             border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        h1 {
+            padding: 40px;
+            width: 90%;
+            max-width: 400px;
             text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2.5em;
         }
-        .subtitle {
-            text-align: center;
-            color: #666;
+        .login-icon {
+            width: 80px;
+            height: 80px;
+            background: #FF8855;
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        .login-title {
+            font-size: 24px;
+            color: #FF8855;
+            font-weight: bold;
             margin-bottom: 30px;
-            font-size: 1.1em;
         }
-        .user-section {
-            text-align: center;
+        .login-form label {
+            display: block;
+            text-align: left;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .login-form input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #E5E5E5;
+            border-radius: 8px;
+            font-size: 14px;
             margin-bottom: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
         }
-        .user-section input {
-            padding: 10px 20px;
-            border: 2px solid #667eea;
-            border-radius: 25px;
-            font-size: 1em;
-            margin-right: 10px;
-            outline: none;
-        }
-        .user-section button {
-            padding: 10px 30px;
-            background: #667eea;
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #FF8855;
             color: white;
             border: none;
-            border-radius: 25px;
-            font-size: 1em;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
-            transition: background 0.3s;
         }
-        .user-section button:hover {
-            background: #5568d3;
+        .login-btn:hover {
+            background: #FF7744;
         }
+        .login-tip {
+            margin-top: 15px;
+            font-size: 13px;
+            color: #999;
+        }
+        
+        /* 顶部导航 */
+        .header {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: #FF8855;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        .logo-text {
+            font-size: 20px;
+            font-weight: bold;
+            color: #FF8855;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+        .login-link {
+            color: #FF8855;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        /* 搜索栏 */
+        .search-section {
+            padding: 15px 20px;
+            background: white;
+            margin-bottom: 1px;
+        }
+        .search-box {
+            position: relative;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 10px 40px 10px 15px;
+            border: 1px solid #E5E5E5;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        .search-box::before {
+            content: "🔍";
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        /* 分类标签 */
         .categories {
+            padding: 15px 20px;
+            background: white;
             display: flex;
             gap: 10px;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            justify-content: center;
+            overflow-x: auto;
+            white-space: nowrap;
         }
-        .category-btn {
-            padding: 12px 25px;
-            background: #f0f0f0;
-            border: 2px solid transparent;
-            border-radius: 25px;
+        .categories::-webkit-scrollbar {
+            display: none;
+        }
+        .category-tag {
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: none;
+            background: #F5F5F5;
+            color: #666;
+            font-size: 14px;
             cursor: pointer;
-            transition: all 0.3s;
-            font-size: 1em;
-            font-weight: 500;
+            flex-shrink: 0;
         }
-        .category-btn:hover {
-            background: #e0e0e0;
-            transform: translateY(-2px);
-        }
-        .category-btn.active {
-            background: #667eea;
+        .category-tag.active {
+            background: #FF8855;
             color: white;
-            border-color: #5568d3;
         }
-        .dishes {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
+        
+        /* 菜品列表 */
+        .dishes-container {
+            padding: 15px;
         }
         .dish-card {
             background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
             overflow: hidden;
-            transition: all 0.3s;
-            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        .dish-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        .dish-content {
+            display: flex;
+            gap: 15px;
+            padding: 15px;
         }
         .dish-image {
-            width: 100%;
-            height: 200px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #FFE5D9 0%, #FFD4C4 100%);
+            border-radius: 8px;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3em;
-            color: white;
+            font-size: 14px;
+            color: #999;
         }
         .dish-info {
-            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .dish-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
         }
         .dish-name {
-            font-size: 1.3em;
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 10px;
             color: #333;
+            margin-bottom: 5px;
         }
-        .dish-price {
-            font-size: 1.5em;
-            color: #667eea;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        .dish-stock {
-            font-size: 0.9em;
-            color: #666;
-            margin-bottom: 15px;
-        }
-        .stock-label {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.85em;
+        .dish-badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
             font-weight: 500;
         }
-        .stock-available {
-            background: #d4edda;
-            color: #155724;
+        .badge-hot {
+            background: #FFE5D9;
+            color: #FF8855;
         }
-        .stock-low {
-            background: #fff3cd;
-            color: #856404;
+        .dish-desc {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        .stock-out {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        .qty-control {
+        .dish-footer {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 15px;
-            margin-top: 10px;
         }
-        .qty-btn {
-            width: 35px;
-            height: 35px;
+        .dish-price {
+            font-size: 20px;
+            color: #FF8855;
+            font-weight: bold;
+        }
+        .dish-price::before {
+            content: "¥";
+            font-size: 14px;
+        }
+        .dish-stock {
+            font-size: 12px;
+            color: #999;
+        }
+        .add-btn {
+            width: 32px;
+            height: 32px;
+            background: #FF8855;
             border: none;
             border-radius: 50%;
-            background: #667eea;
             color: white;
-            font-size: 1.2em;
+            font-size: 20px;
             cursor: pointer;
-            transition: background 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .qty-btn:hover {
-            background: #5568d3;
+        .add-btn:hover {
+            background: #FF7744;
         }
-        .qty-btn:disabled {
-            background: #ccc;
+        .add-btn:disabled {
+            background: #CCC;
             cursor: not-allowed;
         }
-        .qty-display {
-            font-size: 1.2em;
-            font-weight: bold;
-            min-width: 30px;
-            text-align: center;
-        }
-        .cart-float {
+        
+        /* 购物车按钮 */
+        .cart-btn {
             position: fixed;
             bottom: 30px;
-            right: 30px;
-            background: #667eea;
-            color: white;
-            width: 70px;
-            height: 70px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: #FF8855;
             border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(255, 136, 85, 0.4);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
             cursor: pointer;
-            transition: transform 0.3s;
-            font-size: 1.8em;
+            color: white;
+            font-size: 24px;
+            z-index: 100;
         }
-        .cart-float:hover {
-            transform: scale(1.1);
+        .cart-btn:hover {
+            transform: scale(1.05);
         }
         .cart-count {
             position: absolute;
-            top: 5px;
-            right: 5px;
-            background: #ff4757;
+            top: -5px;
+            right: -5px;
+            background: #FF4444;
             color: white;
-            width: 25px;
-            height: 25px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.5em;
+            font-size: 12px;
             font-weight: bold;
         }
+        
         @media (max-width: 768px) {
-            h1 {
-                font-size: 1.8em;
+            .dish-content {
+                padding: 12px;
             }
-            .dishes {
-                grid-template-columns: 1fr;
-            }
-            .container {
-                padding: 15px;
+            .dish-image {
+                width: 80px;
+                height: 80px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🍽️ 点单程序网</h1>
-        <p class="subtitle">系统仅处理订单信息，不涉及在线支付</p>
-        
-        <div class="user-section" id="userSection">
-            <input type="text" id="usernameInput" placeholder="输入用户名（游客可跳过）">
-            <button onclick="login()">登录/注册</button>
-            <span id="userDisplay" style="display:none; margin-left: 20px; font-weight: bold;"></span>
+    <!-- 登录弹窗 -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-box">
+            <div class="login-icon">🍜</div>
+            <div class="login-title">点单程序网</div>
+            <form class="login-form" onsubmit="handleLogin(event)">
+                <label>用户名</label>
+                <input type="text" id="usernameInput" placeholder="请输入用户名" required>
+                <label>密码</label>
+                <input type="password" id="passwordInput" placeholder="请输入密码">
+                <button type="submit" class="login-btn">登录</button>
+            </form>
+            <div class="login-tip">还没有账号？立即注册</div>
         </div>
-
-        <div class="categories" id="categories"></div>
-        <div class="dishes" id="dishes"></div>
     </div>
 
-    <div class="cart-float" onclick="goToCheckout()">
+    <!-- 顶部导航 -->
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">🍜</div>
+            <div class="logo-text">菜单</div>
+        </div>
+        <div class="user-info">
+            <span id="userDisplay">
+                <a class="login-link" onclick="showLogin()">登录</a>
+            </span>
+        </div>
+    </div>
+
+    <!-- 搜索栏 -->
+    <div class="search-section">
+        <div class="search-box">
+            <input type="text" placeholder="搜索菜品名称或关键词">
+        </div>
+    </div>
+
+    <!-- 分类标签 -->
+    <div class="categories" id="categories">
+        <button class="category-tag active" onclick="selectCategory(null)">特色菜</button>
+    </div>
+
+    <!-- 菜品列表 -->
+    <div class="dishes-container" id="dishesContainer"></div>
+
+    <!-- 购物车按钮 -->
+    <div class="cart-btn" onclick="goToCheckout()">
         🛒
         <div class="cart-count" id="cartCount">0</div>
     </div>
@@ -261,8 +392,18 @@
         let currentCategory = null;
         let cart = {};
 
-        async function login() {
-            const username = document.getElementById('usernameInput').value.trim() || 'guest_' + Date.now();
+        function showLogin() {
+            document.getElementById('loginModal').classList.add('active');
+        }
+
+        function hideLogin() {
+            document.getElementById('loginModal').classList.remove('active');
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('usernameInput').value.trim();
+            
             try {
                 const res = await fetch('/api/login', {
                     method: 'POST',
@@ -271,15 +412,23 @@
                 });
                 const user = await res.json();
                 currentUser = user;
-                document.getElementById('usernameInput').style.display = 'none';
-                document.querySelector('.user-section button').style.display = 'none';
-                document.getElementById('userDisplay').style.display = 'inline';
-                document.getElementById('userDisplay').textContent = `👤 ${user.username}${user.is_admin ? ' (管理员)' : ''}`;
+                
+                document.getElementById('userDisplay').innerHTML = 
+                    `<span style="color: #FF8855;">👤 ${user.username}</span>`;
+                
                 localStorage.setItem('currentUser', JSON.stringify(user));
+                hideLogin();
             } catch (error) {
                 alert('登录失败：' + error);
             }
         }
+
+        // 点击背景关闭登录弹窗
+        document.getElementById('loginModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideLogin();
+            }
+        });
 
         async function loadCategories() {
             try {
@@ -287,9 +436,13 @@
                 const categories = await res.json();
                 const container = document.getElementById('categories');
                 
-                container.innerHTML = '<button class="category-btn active" onclick="selectCategory(null)">全部</button>';
+                container.innerHTML = '<button class="category-tag active" onclick="selectCategory(null)">特色菜</button>';
                 categories.forEach(cat => {
-                    container.innerHTML += `<button class="category-btn" onclick="selectCategory(${cat.category_id})">${cat.name}</button>`;
+                    const btn = document.createElement('button');
+                    btn.className = 'category-tag';
+                    btn.textContent = cat.name;
+                    btn.onclick = () => selectCategory(cat.category_id);
+                    container.appendChild(btn);
                 });
             } catch (error) {
                 console.error('加载分类失败:', error);
@@ -298,7 +451,7 @@
 
         function selectCategory(categoryId) {
             currentCategory = categoryId;
-            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.category-tag').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
             loadDishes();
         }
@@ -308,26 +461,35 @@
                 const url = currentCategory ? `/api/dishes?category_id=${currentCategory}` : '/api/dishes';
                 const res = await fetch(url);
                 const dishes = await res.json();
-                const container = document.getElementById('dishes');
+                const container = document.getElementById('dishesContainer');
                 
                 container.innerHTML = dishes.map(dish => {
-                    const stockStatus = dish.stock > 10 ? 'available' : dish.stock > 0 ? 'low' : 'out';
-                    const stockText = dish.stock > 0 ? `库存 ${dish.stock}` : '已售罄';
                     const qty = cart[dish.dish_id] || 0;
+                    const isAvailable = dish.status === 'OnShelf' && dish.stock > 0;
                     
                     return `
                         <div class="dish-card">
-                            <div class="dish-image">${dish.name[0]}</div>
-                            <div class="dish-info">
-                                <div class="dish-name">${dish.name}</div>
-                                <div class="dish-price">¥${dish.price}</div>
-                                <div class="dish-stock">
-                                    <span class="stock-label stock-${stockStatus}">${stockText}</span>
-                                </div>
-                                <div class="qty-control">
-                                    <button class="qty-btn" onclick="changeQty(${dish.dish_id}, -1)" ${qty === 0 ? 'disabled' : ''}>−</button>
-                                    <div class="qty-display">${qty}</div>
-                                    <button class="qty-btn" onclick="changeQty(${dish.dish_id}, 1)" ${dish.stock <= qty || dish.status !== 'OnShelf' ? 'disabled' : ''}>+</button>
+                            <div class="dish-content">
+                                <div class="dish-image">菜品图片</div>
+                                <div class="dish-info">
+                                    <div>
+                                        <div class="dish-header">
+                                            <div class="dish-name">${dish.name}</div>
+                                            ${dish.stock > 0 && dish.stock < 10 ? '<span class="dish-badge badge-hot">热销</span>' : ''}
+                                        </div>
+                                        <div class="dish-desc">川菜经典，香辣可口</div>
+                                    </div>
+                                    <div class="dish-footer">
+                                        <div>
+                                            <div class="dish-price">${dish.price}</div>
+                                            <div class="dish-stock">库存 ${dish.stock}份</div>
+                                        </div>
+                                        <button class="add-btn" 
+                                            onclick="addToCart(${dish.dish_id})" 
+                                            ${!isAvailable || qty >= dish.stock ? 'disabled' : ''}>
+                                            +
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -338,10 +500,14 @@
             }
         }
 
-        function changeQty(dishId, delta) {
+        function addToCart(dishId) {
+            if (!currentUser) {
+                showLogin();
+                return;
+            }
+            
             if (!cart[dishId]) cart[dishId] = 0;
-            cart[dishId] += delta;
-            if (cart[dishId] <= 0) delete cart[dishId];
+            cart[dishId]++;
             
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
@@ -359,7 +525,7 @@
                 return;
             }
             if (!currentUser) {
-                alert('请先登录！');
+                showLogin();
                 return;
             }
             window.location.href = '/checkout';
@@ -370,10 +536,8 @@
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
                 currentUser = JSON.parse(savedUser);
-                document.getElementById('usernameInput').style.display = 'none';
-                document.querySelector('.user-section button').style.display = 'none';
-                document.getElementById('userDisplay').style.display = 'inline';
-                document.getElementById('userDisplay').textContent = `👤 ${currentUser.username}${currentUser.is_admin ? ' (管理员)' : ''}`;
+                document.getElementById('userDisplay').innerHTML = 
+                    `<span style="color: #FF8855;">👤 ${currentUser.username}</span>`;
             }
             
             const savedCart = localStorage.getItem('cart');
@@ -386,4 +550,3 @@
     </script>
 </body>
 </html>
-

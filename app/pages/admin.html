@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>后台管理 - 点单程序网</title>
+    <title>商家管理后台</title>
     <style>
         * {
             margin: 0;
@@ -12,262 +12,778 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #FFF5F0;
             min-height: 100vh;
+        }
+        
+        /* 登录页面 */
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
         }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
+        .login-container {
             background: white;
             border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        h1 {
+            padding: 50px 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 2em;
         }
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-        }
-        .tabs {
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            background: #FF8855;
+            border-radius: 20px;
+            margin: 0 auto 20px;
             display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 10px;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
         }
-        .tab {
-            padding: 12px 25px;
-            background: #f0f0f0;
-            border: none;
-            border-radius: 10px 10px 0 0;
-            cursor: pointer;
-            font-size: 1em;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        .tab:hover {
-            background: #e0e0e0;
-        }
-        .tab.active {
-            background: #667eea;
-            color: white;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        .section {
-            margin-bottom: 30px;
-        }
-        .section-title {
-            font-size: 1.3em;
+        .login-title {
+            font-size: 24px;
+            color: #FF8855;
             font-weight: bold;
-            margin-bottom: 15px;
-            color: #333;
+            margin-bottom: 10px;
+        }
+        .login-subtitle {
+            font-size: 14px;
+            color: #999;
+            margin-bottom: 40px;
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            text-align: left;
         }
         .form-group label {
             display: block;
-            margin-bottom: 5px;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 8px;
             font-weight: 500;
-            color: #555;
         }
-        .form-group input, .form-group select {
+        .form-group input {
             width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
+            padding: 12px 16px;
+            border: 1px solid #E5E5E5;
             border-radius: 8px;
-            font-size: 1em;
+            font-size: 14px;
         }
-        .btn {
-            padding: 12px 30px;
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: #FF8855;
+            color: white;
             border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 500;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s;
+            margin-top: 10px;
         }
-        .btn-primary {
-            background: #667eea;
+        .login-btn:hover {
+            background: #FF7744;
+        }
+        .back-link {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #FF8855;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        /* 后台主页面 */
+        .admin-page {
+            display: none;
+        }
+        .admin-page.active {
+            display: block;
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 200px;
+            height: 100vh;
+            background: white;
+            padding: 20px 0;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+        }
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid #F0F0F0;
+        }
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #FF8855;
+        }
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        .menu-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            color: #666;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .menu-item:hover {
+            background: #FFF5F0;
+            color: #FF8855;
+        }
+        .menu-item.active {
+            background: #FF8855;
             color: white;
+            font-weight: bold;
         }
-        .btn-primary:hover {
-            background: #5568d3;
+        
+        /* 主内容区 */
+        .main-content {
+            margin-left: 200px;
+            padding: 20px;
+            min-height: 100vh;
         }
-        .btn-success {
-            background: #28a745;
+        
+        /* 顶部栏 */
+        .top-bar {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .page-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+        }
+        .status-badge {
+            padding: 6px 16px;
+            background: #4CAF50;
             color: white;
+            border-radius: 20px;
+            font-size: 13px;
         }
-        .btn-danger {
-            background: #dc3545;
+        
+        /* 数据卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .stat-label {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 10px;
+        }
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-trend {
+            font-size: 12px;
+            color: #4CAF50;
+            margin-top: 5px;
+        }
+        
+        /* 表格 */
+        .table-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+        }
+        .filter-tab {
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid #E5E5E5;
+            background: white;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .filter-tab.active {
+            background: #FF8855;
             color: white;
+            border-color: #FF8855;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #e0e0e0;
         }
         th {
-            background: #f8f9fa;
-            font-weight: 600;
+            text-align: left;
+            padding: 12px;
+            background: #F8F9FA;
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
         }
-        .status-badge {
-            display: inline-block;
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #F0F0F0;
+            font-size: 14px;
+        }
+        .order-status {
             padding: 4px 12px;
             border-radius: 12px;
-            font-size: 0.85em;
+            font-size: 12px;
             font-weight: 500;
         }
         .status-submitted {
-            background: #d1ecf1;
-            color: #0c5460;
+            background: #E3F2FD;
+            color: #1976D2;
         }
         .status-completed {
-            background: #d4edda;
-            color: #155724;
+            background: #E8F5E9;
+            color: #4CAF50;
         }
         .status-cancelled {
-            background: #f8d7da;
-            color: #721c24;
+            background: #FFEBEE;
+            color: #F44336;
         }
-        .back-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #f0f0f0;
-            color: #333;
-            text-decoration: none;
+        .action-btn {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+        .btn-success {
+            background: #4CAF50;
+            color: white;
+        }
+        .btn-warning {
+            background: #FF9800;
+            color: white;
+        }
+        .btn-danger {
+            background: #F44336;
+            color: white;
+        }
+        
+        /* 菜品网格 */
+        .dishes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        .dish-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .dish-image-placeholder {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, #FFE5D9 0%, #FFD4C4 100%);
             border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        .dish-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .dish-info {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 12px;
+        }
+        .dish-price {
+            font-size: 20px;
+            color: #FF8855;
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
+        .dish-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .dish-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        /* 库存管理 */
+        .inventory-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
             margin-bottom: 20px;
-            transition: background 0.3s;
         }
-        .back-btn:hover {
-            background: #e0e0e0;
+        .control-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
+        .control-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .input-row input, .input-row select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #E5E5E5;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 10px;
+            background: #FF8855;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .submit-btn:hover {
+            background: #FF7744;
+        }
+        
         @media (max-width: 768px) {
-            .container {
-                padding: 15px;
+            .sidebar {
+                width: 60px;
             }
-            table {
-                font-size: 0.9em;
+            .sidebar-title, .menu-item span {
+                display: none;
             }
-            .tabs {
-                flex-direction: column;
+            .main-content {
+                margin-left: 60px;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <a href="/" class="back-btn">← 返回前台</a>
-        
-        <h1>🛠️ 后台管理</h1>
-        <p class="subtitle">菜品管理 · 库存调整 · 订单查看</p>
-        
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('inventory')">库存管理</button>
-            <button class="tab" onclick="switchTab('orders')">订单管理</button>
-        </div>
-        
-        <!-- 库存管理 -->
-        <div id="inventory" class="tab-content active">
-            <div class="section">
-                <div class="section-title">调整库存</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: end;">
-                    <div class="form-group">
-                        <label>菜品ID</label>
-                        <input type="number" id="adjustDishId" placeholder="输入菜品ID">
-                    </div>
-                    <div class="form-group">
-                        <label>调整量（可正可负）</label>
-                        <input type="number" id="adjustDelta" placeholder="如：+10 或 -5">
-                    </div>
-                    <div class="form-group">
-                        <label>&nbsp;</label>
-                        <button class="btn btn-primary" onclick="adjustInventory()">调整库存</button>
-                    </div>
-                </div>
-            </div>
+    <!-- 登录页面 -->
+    <div class="login-page" id="loginPage">
+        <div class="login-container">
+            <div class="login-logo">🤖</div>
+            <div class="login-title">商家管理后台</div>
+            <div class="login-subtitle">点单程序网 Web 管理系统</div>
             
-            <div class="section">
-                <div class="section-title">上下架菜品</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;">
-                    <div class="form-group">
-                        <label>菜品ID</label>
-                        <input type="number" id="statusDishId" placeholder="输入菜品ID">
-                    </div>
-                    <div class="form-group">
-                        <label>状态</label>
-                        <select id="dishStatus">
-                            <option value="OnShelf">上架</option>
-                            <option value="OffShelf">下架</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>&nbsp;</label>
-                        <button class="btn btn-primary" onclick="updateDishStatus()">更新状态</button>
-                    </div>
+            <form onsubmit="handleAdminLogin(event)">
+                <div class="form-group">
+                    <label>管理员账号</label>
+                    <input type="text" id="adminUsername" placeholder="请输入管理员账号" value="admin" required>
+                </div>
+                <div class="form-group">
+                    <label>登录密码</label>
+                    <input type="password" id="adminPassword" placeholder="请输入登录密码">
+                </div>
+                <button type="submit" class="login-btn">登录后台</button>
+            </form>
+            
+            <a href="/" class="back-link">← 后台收款处 / 数据概览</a>
+        </div>
+    </div>
+
+    <!-- 后台主页面 -->
+    <div class="admin-page" id="adminPage">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">导航菜单</div>
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-item active" onclick="switchSection('dashboard')">
+                    <span>📊</span> <span>数据概览</span>
+                </div>
+                <div class="menu-item" onclick="switchSection('orders')">
+                    <span>📋</span> <span>订单管理</span>
+                </div>
+                <div class="menu-item" onclick="switchSection('dishes')">
+                    <span>🍽️</span> <span>菜品管理</span>
+                </div>
+                <div class="menu-item" onclick="switchSection('inventory')">
+                    <span>📦</span> <span>库存管理</span>
                 </div>
             </div>
         </div>
-        
-        <!-- 订单管理 -->
-        <div id="orders" class="tab-content">
-            <div class="section">
-                <div class="section-title">订单列表</div>
-                <div style="margin-bottom: 15px;">
-                    <label>筛选状态：</label>
-                    <select id="orderStatusFilter" onchange="loadOrders()" style="padding: 8px; border-radius: 5px;">
-                        <option value="">全部</option>
-                        <option value="Submitted">已提交</option>
-                        <option value="Completed">已完成</option>
-                        <option value="Cancelled">已取消</option>
-                    </select>
-                    <button class="btn btn-primary" onclick="loadOrders()" style="margin-left: 10px;">刷新</button>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 数据概览 -->
+            <div class="content-section active" id="dashboard">
+                <div class="top-bar">
+                    <div class="page-title">数据仪表盘</div>
+                    <div class="status-badge">● 营业中</div>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>订单号</th>
-                            <th>用户ID</th>
-                            <th>状态</th>
-                            <th>总价</th>
-                            <th>创建时间</th>
-                            <th>操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ordersTableBody"></tbody>
-                </table>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">今日订单数</div>
+                        <div class="stat-value" id="todayOrders">128</div>
+                        <div class="stat-trend">↑ 较昨日 +12%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">今日营业额</div>
+                        <div class="stat-value" style="color: #FF8855;" id="todayRevenue">¥3,482</div>
+                        <div class="stat-trend">↑ 较昨日 +8%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">待处理订单</div>
+                        <div class="stat-value" style="color: #FF9800;" id="pendingOrders">12</div>
+                        <div class="stat-trend" style="color: #FF9800;">需要及时处理</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">已完成订单</div>
+                        <div class="stat-value" style="color: #4CAF50;" id="completedOrders">116</div>
+                        <div class="stat-trend">完成率 90.6%</div>
+                    </div>
+                </div>
+
+                <div class="table-section">
+                    <div class="section-header">
+                        <div class="section-title">最新订单</div>
+                        <div class="filter-tabs">
+                            <button class="filter-tab active">全部</button>
+                            <button class="filter-tab">待确认</button>
+                            <button class="filter-tab">已完成</button>
+                        </div>
+                    </div>
+                    <table id="recentOrdersTable">
+                        <thead>
+                            <tr>
+                                <th>订单号</th>
+                                <th>下单时间</th>
+                                <th>菜品数量</th>
+                                <th>订单金额</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentOrdersBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 订单管理 -->
+            <div class="content-section" id="orders">
+                <div class="top-bar">
+                    <div class="page-title">订单管理</div>
+                </div>
+
+                <div class="table-section">
+                    <div class="section-header">
+                        <div class="section-title">订单列表</div>
+                        <div class="filter-tabs">
+                            <button class="filter-tab active" onclick="filterOrders('')">全部订单</button>
+                            <button class="filter-tab" onclick="filterOrders('Submitted')">待确认</button>
+                            <button class="filter-tab" onclick="filterOrders('Completed')">已完成</button>
+                            <button class="filter-tab" onclick="filterOrders('Cancelled')">已取消</button>
+                        </div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>订单号</th>
+                                <th>下单时间</th>
+                                <th>菜品明细</th>
+                                <th>数量</th>
+                                <th>金额</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 菜品管理 -->
+            <div class="content-section" id="dishes">
+                <div class="top-bar">
+                    <div class="page-title">菜品管理</div>
+                </div>
+
+                <div class="table-section">
+                    <div class="section-header">
+                        <div class="section-title">菜品列表</div>
+                        <div class="filter-tabs">
+                            <button class="filter-tab active">全部品类</button>
+                            <button class="filter-tab">特色菜</button>
+                            <button class="filter-tab">肉类</button>
+                            <button class="filter-tab">素菜</button>
+                            <button class="filter-tab">酒水</button>
+                            <button class="filter-tab">主食</button>
+                        </div>
+                    </div>
+                    <div class="dishes-grid" id="dishesGrid"></div>
+                </div>
+            </div>
+
+            <!-- 库存管理 -->
+            <div class="content-section" id="inventory">
+                <div class="top-bar">
+                    <div class="page-title">库存管理</div>
+                </div>
+
+                <div class="inventory-controls">
+                    <div class="control-card">
+                        <div class="control-title">调整库存</div>
+                        <div class="input-row">
+                            <input type="number" id="adjustDishId" placeholder="菜品ID">
+                            <input type="number" id="adjustDelta" placeholder="调整量（+/-）">
+                        </div>
+                        <button class="submit-btn" onclick="adjustInventory()">调整库存</button>
+                    </div>
+
+                    <div class="control-card">
+                        <div class="control-title">上下架菜品</div>
+                        <div class="input-row">
+                            <input type="number" id="statusDishId" placeholder="菜品ID">
+                            <select id="dishStatus">
+                                <option value="OnShelf">上架</option>
+                                <option value="OffShelf">下架</option>
+                            </select>
+                        </div>
+                        <button class="submit-btn" onclick="updateDishStatus()">更新状态</button>
+                    </div>
+                </div>
+
+                <div class="table-section">
+                    <div class="section-header">
+                        <div class="section-title">库存预警</div>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>菜品ID</th>
+                                <th>菜品名称</th>
+                                <th>当前库存</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventoryBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        let currentAdmin = null;
+
+        async function handleAdminLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('adminUsername').value;
             
-            event.target.classList.add('active');
-            document.getElementById(tabName).classList.add('active');
-            
-            if (tabName === 'orders') {
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username})
+                });
+                const user = await res.json();
+                
+                if (!user.is_admin) {
+                    alert('权限不足：需要管理员账号');
+                    return;
+                }
+                
+                currentAdmin = user;
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('adminPage').classList.add('active');
+                
+                loadDashboardData();
                 loadOrders();
+                loadDishes();
+                loadInventory();
+            } catch (error) {
+                alert('登录失败：' + error);
+            }
+        }
+
+        function switchSection(section) {
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            event.target.closest('.menu-item').classList.add('active');
+            
+            document.querySelectorAll('.content-section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(section).classList.add('active');
+        }
+
+        async function loadDashboardData() {
+            try {
+                const res = await fetch('/api/admin/orders');
+                const orders = await res.json();
+                
+                const today = new Date().toDateString();
+                const todayOrders = orders.filter(o => new Date(o.created_at).toDateString() === today);
+                
+                document.getElementById('todayOrders').textContent = todayOrders.length;
+                document.getElementById('todayRevenue').textContent = 
+                    '¥' + todayOrders.reduce((sum, o) => sum + parseFloat(o.total_price), 0).toFixed(0);
+                document.getElementById('pendingOrders').textContent = 
+                    orders.filter(o => o.status === 'Submitted').length;
+                document.getElementById('completedOrders').textContent = 
+                    orders.filter(o => o.status === 'Completed').length;
+                
+                renderRecentOrders(orders.slice(0, 5));
+            } catch (error) {
+                console.error('加载数据失败:', error);
+            }
+        }
+
+        function renderRecentOrders(orders) {
+            const tbody = document.getElementById('recentOrdersBody');
+            tbody.innerHTML = orders.map(order => `
+                <tr>
+                    <td>#A${order.order_id.toString().padStart(12, '0')}</td>
+                    <td>${new Date(order.created_at).toLocaleString('zh-CN')}</td>
+                    <td>3件</td>
+                    <td style="color: #FF8855; font-weight: bold;">¥${order.total_price}</td>
+                    <td><span class="order-status status-${order.status.toLowerCase()}">${order.status}</span></td>
+                    <td>
+                        ${order.status === 'Submitted' ? 
+                            `<button class="action-btn btn-success" onclick="completeOrder(${order.order_id})">完成</button>` : 
+                            '-'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadOrders(status = '') {
+            try {
+                const url = status ? `/api/admin/orders?status=${status}` : '/api/admin/orders';
+                const res = await fetch(url);
+                const orders = await res.json();
+                
+                const tbody = document.getElementById('ordersBody');
+                tbody.innerHTML = orders.map(order => `
+                    <tr>
+                        <td>#A${order.order_id.toString().padStart(12, '0')}</td>
+                        <td>${new Date(order.created_at).toLocaleTimeString('zh-CN')}</td>
+                        <td>宫保鸡丁，麻婆豆腐</td>
+                        <td>${order.remark || '3件'}</td>
+                        <td style="color: #FF8855; font-weight: bold;">¥${order.total_price}</td>
+                        <td><span class="order-status status-${order.status.toLowerCase()}">${order.status}</span></td>
+                        <td>
+                            <button class="action-btn btn-primary">详情</button>
+                            ${order.status === 'Submitted' ? 
+                                `<button class="action-btn btn-success" onclick="completeOrder(${order.order_id})">完成</button>` : 
+                                ''}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('加载订单失败:', error);
+            }
+        }
+
+        function filterOrders(status) {
+            loadOrders(status);
+        }
+
+        async function loadDishes() {
+            try {
+                const res = await fetch('/api/dishes?size=50');
+                const dishes = await res.json();
+                
+                const grid = document.getElementById('dishesGrid');
+                grid.innerHTML = dishes.map(dish => `
+                    <div class="dish-card">
+                        <div class="dish-image-placeholder">菜品图片</div>
+                        <div class="dish-name">${dish.name}</div>
+                        <div class="dish-info">特色菜 · 库存: ${dish.stock}份 · ${dish.status === 'OnShelf' ? '在售' : '下架'}</div>
+                        <div class="dish-price">¥${dish.price}</div>
+                        <div class="dish-actions">
+                            <button class="btn-success">在售</button>
+                            <button class="btn-warning">编辑</button>
+                            <button class="btn-danger">下架</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('加载菜品失败:', error);
+            }
+        }
+
+        async function loadInventory() {
+            try {
+                const res = await fetch('/api/dishes?size=50');
+                const dishes = await res.json();
+                
+                const tbody = document.getElementById('inventoryBody');
+                tbody.innerHTML = dishes.filter(d => d.stock < 20).map(dish => `
+                    <tr>
+                        <td>${dish.dish_id}</td>
+                        <td>${dish.name}</td>
+                        <td style="color: ${dish.stock < 10 ? '#F44336' : '#FF9800'}; font-weight: bold;">
+                            ${dish.stock}份
+                        </td>
+                        <td><span class="order-status ${dish.stock === 0 ? 'status-cancelled' : 'status-submitted'}">
+                            ${dish.stock === 0 ? '已售罄' : '库存紧张'}
+                        </span></td>
+                        <td>
+                            <button class="action-btn btn-success" onclick="quickAdjust(${dish.dish_id}, 10)">补货</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('加载库存失败:', error);
             }
         }
 
@@ -285,14 +801,15 @@
                     method: 'POST'
                 });
                 
-                if (!res.ok) {
+                if (res.ok) {
+                    alert('✅ 库存调整成功！');
+                    document.getElementById('adjustDishId').value = '';
+                    document.getElementById('adjustDelta').value = '';
+                    loadInventory();
+                } else {
                     const error = await res.json();
-                    throw new Error(error.detail || '调整失败');
+                    alert('调整失败：' + error.detail);
                 }
-                
-                alert('✅ 库存调整成功！');
-                document.getElementById('adjustDishId').value = '';
-                document.getElementById('adjustDelta').value = '';
             } catch (error) {
                 alert('调整失败：' + error.message);
             }
@@ -314,43 +831,16 @@
                     body: JSON.stringify({status})
                 });
                 
-                if (!res.ok) {
+                if (res.ok) {
+                    alert('✅ 状态更新成功！');
+                    document.getElementById('statusDishId').value = '';
+                    loadDishes();
+                } else {
                     const error = await res.json();
-                    throw new Error(error.detail || '更新失败');
+                    alert('更新失败：' + error.detail);
                 }
-                
-                alert('✅ 状态更新成功！');
-                document.getElementById('statusDishId').value = '';
             } catch (error) {
                 alert('更新失败：' + error.message);
-            }
-        }
-
-        async function loadOrders() {
-            const status = document.getElementById('orderStatusFilter').value;
-            const url = status ? `/api/admin/orders?status=${status}` : '/api/admin/orders';
-            
-            try {
-                const res = await fetch(url);
-                const orders = await res.json();
-                const tbody = document.getElementById('ordersTableBody');
-                
-                tbody.innerHTML = orders.map(order => `
-                    <tr>
-                        <td>${order.order_id}</td>
-                        <td>${order.user_id}</td>
-                        <td><span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span></td>
-                        <td>¥${order.total_price}</td>
-                        <td>${new Date(order.created_at).toLocaleString('zh-CN')}</td>
-                        <td>
-                            ${order.status === 'Submitted' ? 
-                                `<button class="btn btn-success" style="padding: 6px 15px;" onclick="completeOrder(${order.order_id})">完成</button>` : 
-                                '-'}
-                        </td>
-                    </tr>
-                `).join('');
-            } catch (error) {
-                console.error('加载订单失败:', error);
             }
         }
 
@@ -362,18 +852,45 @@
                     method: 'POST'
                 });
                 
-                if (!res.ok) {
+                if (res.ok) {
+                    alert('✅ 订单已完成！');
+                    loadDashboardData();
+                    loadOrders();
+                } else {
                     const error = await res.json();
-                    throw new Error(error.detail || '操作失败');
+                    alert('操作失败：' + error.detail);
                 }
-                
-                alert('✅ 订单已完成！');
-                loadOrders();
             } catch (error) {
                 alert('操作失败：' + error.message);
             }
         }
+
+        function quickAdjust(dishId, delta) {
+            document.getElementById('adjustDishId').value = dishId;
+            document.getElementById('adjustDelta').value = delta;
+            adjustInventory();
+        }
+
+        // 添加样式让content-section默认隐藏
+        document.querySelectorAll('.content-section').forEach(sec => {
+            if (!sec.classList.contains('active')) {
+                sec.style.display = 'none';
+            }
+        });
+
+        // 切换section时显示/隐藏
+        const originalSwitchSection = switchSection;
+        switchSection = function(section) {
+            document.querySelectorAll('.content-section').forEach(sec => {
+                sec.style.display = 'none';
+                sec.classList.remove('active');
+            });
+            document.getElementById(section).style.display = 'block';
+            document.getElementById(section).classList.add('active');
+            
+            document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
+            event.target.closest('.menu-item').classList.add('active');
+        };
     </script>
 </body>
 </html>
-
