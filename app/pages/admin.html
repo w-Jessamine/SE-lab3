@@ -848,6 +848,8 @@
             loadOrders(status);
         }
 
+        let currentDishCategoryFilter = '';
+        
         async function initDishCategories() {
             try {
                 const catRes = await fetch('/api/categories');
@@ -859,7 +861,7 @@
                 categories.forEach(cat => {
                     const btn = document.createElement('button');
                     btn.className = 'filter-tab';
-                    btn.setAttribute('data-category-id', cat.category_id);
+                    btn.setAttribute('data-category-id', String(cat.category_id));
                     btn.textContent = cat.name;
                     btn.onclick = () => filterDishes(cat.category_id);
                     tabsContainer.appendChild(btn);
@@ -907,10 +909,19 @@
         }
 
         function filterDishes(categoryId) {
+            // 保存当前筛选状态
+            currentDishCategoryFilter = categoryId;
+            
             // 更新筛选按钮状态
+            const targetId = categoryId === '' ? '' : String(categoryId);
             document.querySelectorAll('#dishes .filter-tab').forEach((btn) => {
                 const btnCatId = btn.getAttribute('data-category-id') || '';
-                btn.classList.toggle('active', btnCatId === categoryId);
+                const isActive = btnCatId === targetId;
+                if (isActive) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
             });
             loadDishes(categoryId);
         }
@@ -925,7 +936,7 @@
                 });
                 
                 if (res.ok) {
-                    loadDishes();
+                    loadDishes(currentDishCategoryFilter);
                 } else {
                     alert('操作失败');
                 }
@@ -992,7 +1003,7 @@
                 if (res.ok) {
                     alert('✅ 菜品更新成功！');
                     closeEditDishModal();
-                    loadDishes();
+                    loadDishes(currentDishCategoryFilter);
                     loadInventory();
                 } else {
                     const error = await res.json();
