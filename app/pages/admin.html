@@ -582,50 +582,25 @@
 
                 <div class="inventory-controls">
                     <div class="control-card">
-                        <div class="control-title">调整库存</div>
+                        <div class="control-title">批量调整库存</div>
+                        <textarea id="batchIds" style="width:100%;height:60px;border:1px solid #E5E5E5;border-radius:6px;padding:8px;margin-bottom:10px;" placeholder="输入菜品ID，用逗号分隔，如：1,2,3,5,8"></textarea>
                         <div class="input-row">
-                            <input type="number" id="adjustDishId" placeholder="菜品ID">
-                            <input type="number" id="adjustDelta" placeholder="调整量（+/-）">
+                            <input type="number" id="batchDelta" placeholder="调整量（+/-）" value="10">
                         </div>
-                        <button class="submit-btn" onclick="adjustInventory()">调整库存</button>
-                    </div>
-
-                    <div class="control-card">
-                        <div class="control-title">上下架菜品</div>
-                        <div class="input-row">
-                            <input type="number" id="statusDishId" placeholder="菜品ID">
-                            <select id="dishStatus">
-                                <option value="OnShelf">上架</option>
-                                <option value="OffShelf">下架</option>
-                            </select>
-                        </div>
-                        <button class="submit-btn" onclick="updateDishStatus()">更新状态</button>
-                    </div>
-
-                    <div class="control-card">
-                        <div class="control-title">批量调整库存（每行：dish_id,delta）</div>
-                        <textarea id="batchTextarea" style="width:100%;height:120px;border:1px solid #E5E5E5;border-radius:6px;padding:8px;" placeholder="例如：\n1,10\n2,-5\n3,20"></textarea>
-                        <button class="submit-btn" style="margin-top:10px;" onclick="adjustBatch()">批量调整</button>
+                        <button class="submit-btn" onclick="adjustBatchInventory()">批量调整库存</button>
                     </div>
                 </div>
 
-                <div class="table-section">
-                    <div class="section-header">
-                        <div class="section-title">库存预警</div>
+                <div class="section-header" style="margin: 20px 0;">
+                    <div class="section-title">库存列表</div>
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" onclick="filterInventory('')">全部</button>
+                        <button class="filter-tab" onclick="filterInventory('充足')">库存充足</button>
+                        <button class="filter-tab" onclick="filterInventory('预警')">库存预警</button>
+                        <button class="filter-tab" onclick="filterInventory('售罄')">已售罄</button>
                     </div>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>菜品ID</th>
-                                <th>菜品名称</th>
-                                <th>当前库存</th>
-                                <th>状态</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inventoryBody"></tbody>
-                    </table>
                 </div>
+                <div class="dishes-grid" id="inventoryGrid"></div>
             </div>
         </div>
     </div>
@@ -678,10 +653,12 @@
                 
                 const today = new Date().toDateString();
                 const todayOrders = orders.filter(o => new Date(o.created_at).toDateString() === today);
+                // 营业额只统计已完成订单
+                const completedToday = todayOrders.filter(o => o.status === 'Completed');
                 
                 document.getElementById('todayOrders').textContent = todayOrders.length;
                 document.getElementById('todayRevenue').textContent = 
-                    '¥' + todayOrders.reduce((sum, o) => sum + parseFloat(o.total_price), 0).toFixed(0);
+                    '¥' + completedToday.reduce((sum, o) => sum + parseFloat(o.total_price), 0).toFixed(0);
                 document.getElementById('pendingOrders').textContent = 
                     orders.filter(o => o.status === 'Submitted').length;
                 document.getElementById('completedOrders').textContent = 
@@ -711,85 +688,246 @@
             `).join('');
         }
 
+        let currentOrderFilter = '';
+        
         async function loadOrders(status = '') {
             try {
+                currentOrderFilter = status;
                 const url = status ? `/api/admin/orders?status=${status}` : '/api/admin/orders';
                 const res = await fetch(url);
                 const orders = await res.json();
                 
+                // 获取所有订单的详细信息
+                const ordersWithDetails = await Promise.all(orders.map(async (order) => {
+                    try {
+                        const detailRes = await fetch(`/api/orders/${order.order_id}`);
+                        const detail = await detailRes.json();
+                        return { ...order, items: detail.items || [] };
+                    } catch {
+                        return { ...order, items: [] };
+                    }
+                }));
+                
                 const tbody = document.getElementById('ordersBody');
-                tbody.innerHTML = orders.map(order => `
-                    <tr>
-                        <td>#A${order.order_id.toString().padStart(12, '0')}</td>
-                        <td>${new Date(order.created_at).toLocaleTimeString('zh-CN')}</td>
-                        <td>宫保鸡丁，麻婆豆腐</td>
-                        <td>${order.remark || '3件'}</td>
-                        <td style="color: #FF8855; font-weight: bold;">¥${order.total_price}</td>
-                        <td><span class="order-status status-${order.status.toLowerCase()}">${order.status}</span></td>
-                        <td>
-                            <button class="action-btn btn-primary" onclick="showOrderDetail(${order.order_id})">详情</button>
-                            ${order.status === 'Submitted' ? 
-                                `<button class="action-btn btn-success" onclick="completeOrder(${order.order_id})">完成</button>` : 
-                                ''}
-                        </td>
-                    </tr>
-                `).join('');
+                tbody.innerHTML = ordersWithDetails.map(order => {
+                    const totalQty = order.items.reduce((sum, item) => sum + item.qty, 0);
+                    const dishNames = order.items.map(item => item.dish_name).slice(0, 2).join('，');
+                    const moreText = order.items.length > 2 ? `等${order.items.length}样` : '';
+                    
+                    return `
+                        <tr>
+                            <td>#A${order.order_id.toString().padStart(12, '0')}</td>
+                            <td>${new Date(order.created_at).toLocaleString('zh-CN', {hour12: false})}</td>
+                            <td>${dishNames}${moreText}</td>
+                            <td>${totalQty}件</td>
+                            <td style="color: #FF8855; font-weight: bold;">¥${order.total_price}</td>
+                            <td><span class="order-status status-${order.status.toLowerCase()}">${order.status}</span></td>
+                            <td>
+                                <button class="action-btn btn-primary" onclick="showOrderDetail(${order.order_id})">详情</button>
+                                ${order.status === 'Submitted' ? 
+                                    `<button class="action-btn btn-success" onclick="completeOrder(${order.order_id})">完成</button>
+                                     <button class="action-btn btn-danger" onclick="cancelOrder(${order.order_id})">取消</button>` : 
+                                    ''}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
             } catch (error) {
                 console.error('加载订单失败:', error);
             }
         }
 
         function filterOrders(status) {
+            // 更新筛选按钮状态
+            document.querySelectorAll('#orders .filter-tab').forEach((btn, idx) => {
+                const statuses = ['', 'Submitted', 'Completed', 'Cancelled'];
+                btn.classList.toggle('active', statuses[idx] === status);
+            });
             loadOrders(status);
         }
 
-        async function loadDishes() {
+        async function loadDishes(categoryId = '') {
             try {
-                const res = await fetch('/api/dishes?size=50');
+                const url = categoryId ? `/api/dishes?category_id=${categoryId}&size=50` : '/api/dishes?size=50';
+                const res = await fetch(url);
                 const dishes = await res.json();
                 
+                // 获取分类信息
+                const catRes = await fetch('/api/categories');
+                const categories = await catRes.json();
+                const catMap = {};
+                categories.forEach(c => catMap[c.category_id] = c.name);
+                
                 const grid = document.getElementById('dishesGrid');
-                grid.innerHTML = dishes.map(dish => `
-                    <div class="dish-card">
-                        <div class="dish-image-placeholder">菜品图片</div>
-                        <div class="dish-name">${dish.name}</div>
-                        <div class="dish-info">特色菜 · 库存: ${dish.stock}份 · ${dish.status === 'OnShelf' ? '在售' : '下架'}</div>
-                        <div class="dish-price">¥${dish.price}</div>
-                        <div class="dish-actions">
-                            <button class="btn-success">在售</button>
-                            <button class="btn-warning">编辑</button>
-                            <button class="btn-danger">下架</button>
+                grid.innerHTML = dishes.map(dish => {
+                    const catName = catMap[dish.category_id] || '未分类';
+                    const imageHtml = dish.image_url ? 
+                        `<img src="${dish.image_url}" alt="${dish.name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px 8px 0 0;">` :
+                        '<div class="dish-image-placeholder">菜品图片</div>';
+                    
+                    return `
+                        <div class="dish-card" onclick="editDish(${dish.dish_id})" style="cursor:pointer;">
+                            ${imageHtml}
+                            <div class="dish-name">${dish.name}</div>
+                            <div class="dish-info">${catName} · 库存: ${dish.stock}份 · ${dish.status === 'OnShelf' ? '在售' : '下架'}</div>
+                            <div class="dish-price">¥${dish.price}</div>
+                            <div class="dish-actions" onclick="event.stopPropagation();">
+                                <button class="btn-${dish.status === 'OnShelf' ? 'success' : 'secondary'}" onclick="toggleDishStatus(${dish.dish_id}, '${dish.status}')">${dish.status === 'OnShelf' ? '在售' : '已下架'}</button>
+                                <button class="btn-warning" onclick="editDish(${dish.dish_id})">编辑</button>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } catch (error) {
                 console.error('加载菜品失败:', error);
             }
         }
 
-        async function loadInventory() {
+        function filterDishes(categoryId) {
+            // 更新筛选按钮状态
+            document.querySelectorAll('#dishes .filter-tab').forEach((btn) => {
+                const btnCatId = btn.getAttribute('data-category-id') || '';
+                btn.classList.toggle('active', btnCatId === categoryId);
+            });
+            loadDishes(categoryId);
+        }
+
+        async function toggleDishStatus(dishId, currentStatus) {
+            const newStatus = currentStatus === 'OnShelf' ? 'OffShelf' : 'OnShelf';
+            try {
+                const res = await fetch(`/api/admin/dishes/${dishId}/status`, {
+                    method: 'PATCH',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({status: newStatus})
+                });
+                
+                if (res.ok) {
+                    loadDishes();
+                } else {
+                    alert('操作失败');
+                }
+            } catch (error) {
+                alert('操作失败：' + error.message);
+            }
+        }
+
+        function editDish(dishId) {
+            window.open(`/admin#edit-dish-${dishId}`, '_blank');
+        }
+
+        async function loadInventory(filter = '') {
             try {
                 const res = await fetch('/api/dishes?size=50');
-                const dishes = await res.json();
+                let dishes = await res.json();
                 
-                const tbody = document.getElementById('inventoryBody');
-                tbody.innerHTML = dishes.map(dish => `
-                    <tr>
-                        <td>${dish.dish_id}</td>
-                        <td>${dish.name}</td>
-                        <td style="color: ${dish.stock === 0 ? '#F44336' : '#333'}; font-weight: bold;">
-                            ${dish.stock}份
-                        </td>
-                        <td><span class="order-status ${dish.status === 'OnShelf' ? 'status-submitted' : 'status-cancelled'}">
-                            ${dish.status === 'OnShelf' ? '在售' : '下架'}
-                        </span></td>
-                        <td>
-                            <button class="action-btn btn-success" onclick="quickAdjust(${dish.dish_id}, 10)">补货</button>
-                        </td>
-                    </tr>
-                `).join('');
+                // 应用筛选
+                if (filter === '充足') dishes = dishes.filter(d => d.stock >= 20);
+                else if (filter === '预警') dishes = dishes.filter(d => d.stock > 0 && d.stock < 20);
+                else if (filter === '售罄') dishes = dishes.filter(d => d.stock === 0);
+                
+                // 获取分类信息
+                const catRes = await fetch('/api/categories');
+                const categories = await catRes.json();
+                const catMap = {};
+                categories.forEach(c => catMap[c.category_id] = c.name);
+                
+                const grid = document.getElementById('inventoryGrid');
+                grid.innerHTML = dishes.map(dish => {
+                    const catName = catMap[dish.category_id] || '未分类';
+                    let statusBadge = '';
+                    let borderColor = '';
+                    
+                    if (dish.stock === 0) {
+                        statusBadge = '<span style="color:#F44336;font-weight:bold;">已售罄</span>';
+                        borderColor = 'border: 2px solid #F44336;';
+                    } else if (dish.stock < 20) {
+                        statusBadge = '<span style="color:#FF9800;font-weight:bold;">库存预警</span>';
+                        borderColor = 'border: 2px solid #FF9800;';
+                    } else {
+                        statusBadge = '<span style="color:#4CAF50;font-weight:bold;">库存充足</span>';
+                    }
+                    
+                    const imageHtml = dish.image_url ? 
+                        `<img src="${dish.image_url}" alt="${dish.name}" style="width:100%;height:150px;object-fit:cover;border-radius:8px 8px 0 0;">` :
+                        '<div class="dish-image-placeholder">菜品图片</div>';
+                    
+                    return `
+                        <div class="dish-card" style="${borderColor}">
+                            ${imageHtml}
+                            <div class="dish-name">${dish.name}</div>
+                            <div class="dish-info">${catName} · ¥${dish.price}</div>
+                            <div style="padding:10px;font-size:24px;font-weight:bold;color:#FF8855;">当前库存: ${dish.stock}份</div>
+                            <div style="padding:0 10px 10px;">${statusBadge}</div>
+                            <div class="dish-actions">
+                                <button class="btn-success" onclick="quickAdjust(${dish.dish_id}, 10)">补货</button>
+                                <button class="btn-warning" onclick="quickAdjust(${dish.dish_id}, -5)">减5</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
             } catch (error) {
                 console.error('加载库存失败:', error);
+            }
+        }
+
+        function filterInventory(filter) {
+            // 更新筛选按钮状态
+            document.querySelectorAll('#inventory .filter-tab').forEach((btn, idx) => {
+                const filters = ['', '充足', '预警', '售罄'];
+                btn.classList.toggle('active', filters[idx] === filter);
+            });
+            loadInventory(filter);
+        }
+
+        async function adjustBatchInventory() {
+            const idsText = document.getElementById('batchIds').value.trim();
+            const delta = parseInt(document.getElementById('batchDelta').value);
+            
+            if (!idsText || !delta) {
+                alert('请填写菜品ID和调整量');
+                return;
+            }
+            
+            const ids = idsText.split(',').map(id => id.trim()).filter(id => id);
+            
+            if (ids.length === 0) {
+                alert('请输入有效的菜品ID');
+                return;
+            }
+            
+            try {
+                const idsParam = ids.join(',');
+                const res = await fetch(`/api/admin/inventory/adjust-batch?dish_ids=${idsParam}&delta=${delta}`, {
+                    method: 'POST'
+                });
+                
+                if (res.ok) {
+                    alert(`✅ 已批量调整 ${ids.length} 个菜品的库存！`);
+                    document.getElementById('batchIds').value = '';
+                    loadInventory();
+                } else {
+                    const error = await res.json();
+                    alert('调整失败：' + error.detail);
+                }
+            } catch (error) {
+                alert('调整失败：' + error.message);
+            }
+        }
+
+        async function quickAdjust(dishId, delta) {
+            try {
+                const res = await fetch(`/api/admin/inventory/adjust?dish_id=${dishId}&delta=${delta}`, {
+                    method: 'POST'
+                });
+                
+                if (res.ok) {
+                    loadInventory();
+                } else {
+                    const error = await res.json();
+                    alert('调整失败：' + error.detail);
+                }
+            } catch (error) {
+                alert('调整失败：' + error.message);
             }
         }
 
@@ -861,7 +999,28 @@
                 if (res.ok) {
                     alert('✅ 订单已完成！');
                     loadDashboardData();
-                    loadOrders();
+                    loadOrders(currentOrderFilter);
+                } else {
+                    const error = await res.json();
+                    alert('操作失败：' + error.detail);
+                }
+            } catch (error) {
+                alert('操作失败：' + error.message);
+            }
+        }
+
+        async function cancelOrder(orderId) {
+            if (!confirm('确认取消此订单？')) return;
+            
+            try {
+                const res = await fetch(`/api/admin/orders/${orderId}/cancel`, {
+                    method: 'POST'
+                });
+                
+                if (res.ok) {
+                    alert('✅ 订单已取消！');
+                    loadDashboardData();
+                    loadOrders(currentOrderFilter);
                 } else {
                     const error = await res.json();
                     alert('操作失败：' + error.detail);

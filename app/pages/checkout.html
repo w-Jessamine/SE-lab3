@@ -338,16 +338,30 @@
                     const dish = await res.json();
                     dishes[item.dish_id] = dish;
                     
-                    // 拉取选择的选项用于显示加价
+                    // 拉取选择的选项用于显示加价和名称
                     let add = 0;
+                    let optionsText = '';
                     if (item.option_item_ids && item.option_item_ids.length) {
                         const optGroups = await (await fetch(`/api/dishes/${item.dish_id}/options`)).json();
                         const allOpts = optGroups.flatMap(g => g.items);
+                        const selectedOpts = [];
                         item.option_item_ids.forEach(id => {
                             const found = allOpts.find(o => o.item_id === id);
-                            if (found) add += Number(found.price_delta || 0);
+                            if (found) {
+                                add += Number(found.price_delta || 0);
+                                selectedOpts.push(found.name);
+                            }
                         });
+                        if (selectedOpts.length > 0) {
+                            optionsText = selectedOpts.join('·');
+                        }
                     }
+                    
+                    const descParts = [];
+                    if (optionsText) descParts.push(optionsText);
+                    if (item.remark) descParts.push(item.remark);
+                    const descText = descParts.length > 0 ? descParts.join(' · ') : '标准份';
+                    
                     const subtotal = (Number(dish.price) + add) * item.qty;
                     total += subtotal;
                     itemCount += item.qty;
@@ -356,9 +370,9 @@
                         <div class="cart-item">
                             <div class="item-header">
                                 <div class="item-name">${dish.name}</div>
-                                <div class="item-price">¥${dish.price}</div>
+                                <div class="item-price">¥${(Number(dish.price) + add).toFixed(2)}</div>
                             </div>
-                            <div class="item-desc">${item.remark ? item.remark : '标准份'}</div>
+                            <div class="item-desc">${descText}</div>
                             <div class="item-footer">
                                 <div>
                                     <span class="qty-label">数量：${item.qty}</span>
