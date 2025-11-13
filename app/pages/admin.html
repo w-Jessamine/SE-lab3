@@ -1016,14 +1016,18 @@
         }
 
         async function loadInventory(filter = '') {
+            console.log('loadInventory: 接收到的筛选参数=', filter);
             try {
                 const res = await fetch('/api/dishes?size=50');
                 let dishes = await res.json();
+                console.log('loadInventory: 获取到菜品数量=', dishes.length);
                 
                 // 应用筛选
                 if (filter === '充足') dishes = dishes.filter(d => d.stock >= 20);
                 else if (filter === '预警') dishes = dishes.filter(d => d.stock > 0 && d.stock < 20);
                 else if (filter === '售罄') dishes = dishes.filter(d => d.stock === 0);
+                
+                console.log('loadInventory: 筛选后菜品数量=', dishes.length);
                 
                 // 获取分类信息
                 const catRes = await fetch('/api/categories');
@@ -1073,6 +1077,7 @@
         function filterInventory(filter) {
             // 保存当前筛选状态
             currentInventoryFilter = filter;
+            console.log('filterInventory: 设置筛选状态=', currentInventoryFilter);
             
             // 更新筛选按钮状态
             document.querySelectorAll('#inventory .filter-tab').forEach((btn, idx) => {
@@ -1126,6 +1131,7 @@
                 
                 if (res.ok) {
                     // 保持当前筛选状态
+                    console.log('quickAdjust: 当前筛选状态=', currentInventoryFilter);
                     loadInventory(currentInventoryFilter);
                 } else {
                     const error = await res.json();
