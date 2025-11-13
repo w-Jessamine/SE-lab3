@@ -352,6 +352,9 @@
         }
         .opt-tag.active { background: #FF8855; color: #fff; border-color: #FF8855; }
         .qty-row { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+        .qty-btn { width: 32px; height: 32px; border: 1px solid #E5E5E5; background: #fff; border-radius: 8px; cursor: pointer; font-size: 18px; }
+        .qty-btn:hover { background: #F5F5F5; }
+        .qty-display { min-width: 40px; text-align: center; font-weight: 700; }
         .primary-btn { width: 100%; margin-top: 12px; padding: 12px; border: none; background: #FF8855; color: #fff; border-radius: 10px; font-weight: 700; cursor: pointer; }
         .primary-btn:hover { background: #FF7744; }
     </style>
@@ -503,9 +506,16 @@
         async function loadDishes() {
             try {
                 const url = currentCategory ? `/api/dishes?category_id=${currentCategory}` : '/api/dishes';
+                console.log('正在加载菜品:', url);
                 const res = await fetch(url);
                 const dishes = await res.json();
+                console.log('获取到菜品:', dishes.length);
                 const container = document.getElementById('dishesContainer');
+                
+                if (!dishes || dishes.length === 0) {
+                    container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">暂无菜品</div>';
+                    return;
+                }
                 
                 container.innerHTML = dishes.map(dish => {
                     const qty = cart.filter(i => i.dish_id === dish.dish_id).reduce((s,i)=>s+i.qty,0);
@@ -608,7 +618,7 @@
         }
 
         function goToCheckout() {
-            if (Object.keys(cart).length === 0) {
+            if (cart.length === 0) {
                 alert('购物车是空的！');
                 return;
             }
@@ -621,15 +631,38 @@
 
         // 初始化
         window.onload = () => {
+            console.log('页面加载完成，开始初始化...');
+            
             const savedUser = localStorage.getItem('currentUser');
             if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                document.getElementById('userDisplay').innerHTML = 
-                    `<span style="color: #FF8855;">👤 ${currentUser.username}</span>`;
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    document.getElementById('userDisplay').innerHTML = 
+                        `<span style="color: #FF8855;">👤 ${currentUser.username}</span>`;
+                } catch (e) {
+                    console.error('解析用户信息失败:', e);
+                    localStorage.removeItem('currentUser');
+                }
             }
             
             const savedCart = localStorage.getItem('cart');
-            if (savedCart) cart = JSON.parse(savedCart);
+            if (savedCart) {
+                try {
+                    const parsed = JSON.parse(savedCart);
+                    // 验证是否是数组格式
+                    if (Array.isArray(parsed)) {
+                        cart = parsed;
+                    } else {
+                        console.warn('购物车格式错误，已重置');
+                        localStorage.removeItem('cart');
+                        cart = [];
+                    }
+                } catch (e) {
+                    console.error('解析购物车失败:', e);
+                    localStorage.removeItem('cart');
+                    cart = [];
+                }
+            }
             
             updateCartCount();
             loadCategories();

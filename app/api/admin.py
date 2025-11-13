@@ -10,8 +10,6 @@ from app.services.inventory_service import InventoryService
 from app.services.order_service import OrderService
 from pydantic import BaseModel
 from typing import Optional
-from app.services.image_service import ImageService
-from app.models.dish import Dish
 
 router = APIRouter(prefix="/api/admin", tags=["后台管理"])
 
@@ -184,24 +182,3 @@ def delete_dish(dish_id: int, db: Session = Depends(get_db)):
     MenuService(db).delete_dish(dish_id)
     return {}
 
-class GenImageBody(BaseModel):
-    dish_ids: Optional[list[int]] = None
-    force: bool = False
-
-@router.post("/dishes/generate-images")
-def generate_dish_images(body: GenImageBody, db: Session = Depends(get_db)):
-    """
-    批量为菜品生成图片：
-    - dish_ids 为空：对所有 image_url 为空的菜品生成
-    - force=true：无论是否已有图片都重新生成
-    画像由 Gemini 服务生成，结果写入 Dish.image_url
-    """
-    svc = ImageService(db)
-    query = db.query(Dish)
-    if body.dish_ids:
-        query = query.filter(Dish.dish_id.in_(body.dish_ids))
-    elif not body.force:
-        query = query.filter((Dish.image_url == "") | (Dish.image_url.is_(None)))
-    dishes = query.all()
-    count = svc.batch_generate_for_dishes(dishes, force=body.force)
-    return {"updated": count}

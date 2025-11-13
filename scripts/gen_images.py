@@ -34,30 +34,57 @@ def ensure_out_dir() -> pathlib.Path:
     return out_dir
 
 
-def call_gemini(prompt: str, base_url: str, api_key: str) -> dict:
-    url = f"{base_url.rstrip('/')}/v1beta/models/gemini-2.5-flash-image:generateContent"
+def call_gemini(prompt: str, base_url: str, api_key: str, model: str, size: str) -> dict:
+    """
+    兼容你提供的调用方式：
+    curl http://14.103.68.46/v1/images/generations -H "Content-Type: application/json" -H "Authorization: Bearer $GEMINI_API_KEY" -d '{"model":"qwen-image","prompt":"红烧肉","n":1,"size":"1328*1328"}'
+    """
+    url = f"{base_url.rstrip('/')}/v1/images/generations"
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-    payload = {"contents": [{"parts": [{"text": prompt}]}]}
-    resp = requests.post(url, json=payload, headers=headers, timeout=60)
+    payload = {"model": model, "prompt": prompt, "n": 1, "size": size}
+    resp = requests.post(url, json=payload, headers=headers, timeout=120)
     resp.raise_for_status()
     return resp.json()
 
 
 def extract_image(data: dict) -> tuple[Optional[bytes], Optional[str]]:
-    # 优先拿直链
-    if isinstance(data, dict) and "image_url" in data:
-        return None, data["image_url"]
-    # 兼容 base64 的常见结构（需按实际接口调整）
-    try:
-        cand = data.get("candidates", [])[0]
-        parts = cand.get("content", {}).get("parts", [])
-        inline = next((p for p in parts if "inline_data" in p), None)
-        if inline:
-            b64 = inline["inline_data"]["data"]
-            return base64.b64decode(b64), None
-    except Exception:
-        pass
+    """
+    解析API返回的图片数据：
+    - 格式：{"data":[{"url":"..."}]} 或 {"data":[{"b64_json":"..."}]}
+    - 返回：提取 data[0] 中的 url 或 b64_json
+    """
+    if not isinstance(data, dict) or "data" not in data:
+        return None, None
+    
+    data_list = data.get("data")
+    if not isinstance(data_list, list) or not data_list:
+        return None, None
+    
+    # 取 data[0]
+    first = data_list[0]
+    if not isinstance(first, dict):
+        return None, None
+    
+    # 优先检查 url（图片下载链接）
+    if "url" in first and first["url"]:
+        print(f"[INFO] 图片URL: {first['url']}")
+        return None, first["url"]
+    
+    # 其次检查 b64_json（base64编码的图片）
+    if "b64_json" in first and first["b64_json"]:
+        try:
+            return base64.b64decode(first["b64_json"]), None
+        except Exception:
+            return None, None
+    
     return None, None
+
+
+def download_image_from_url(url: str) -> bytes:
+    """从URL下载图片"""
+    resp = requests.get(url, timeout=120)
+    resp.raise_for_status()
+    return resp.content
 
 
 def save_local(image_bytes: bytes, filename: str) -> str:
@@ -75,6 +102,8 @@ def main():
     parser.add_argument("--dry", action="store_true", help="只打印，不写入")
     parser.add_argument("--base-url", type=str, default=os.getenv("GEMINI_BASE_URL", ""))
     parser.add_argument("--api-key", type=str, default=os.getenv("GEMINI_API_KEY", ""))
+    parser.add_argument("--model", type=str, default=os.getenv("GEMINI_MODEL", "qwen-image"))
+    parser.add_argument("--size", type=str, default=os.getenv("GEMINI_IMAGE_SIZE", "1328*1328"))
     args = parser.parse_args()
 
     if not args.base_url or not args.api_key:
@@ -95,13 +124,22 @@ def main():
         for dish in dishes:
             prompt = prompt_for_dish(dish)
             try:
-                data = call_gemini(prompt, args.base_url, args.api_key)
+                data = call_gemini(prompt, args.base_url, args.api_key, args.model, args.size)
+                print(f"[INFO] 图片数据: {data}")
                 image_bytes, image_url = extract_image(data)
+                
+                # 如果返回的是base64编码的图片，直接保存
                 if image_bytes:
                     image_url = save_local(image_bytes, f"dish_{dish.dish_id}.jpg")
-                if not image_url:
+                # 如果返回的是URL，下载图片后保存
+                elif image_url:
+                    print(f"[INFO] 下载图片 dish_id={dish.dish_id}, url={image_url}")
+                    image_bytes = download_image_from_url(image_url)
+                    image_url = save_local(image_bytes, f"dish_{dish.dish_id}.jpg")
+                else:
                     print(f"[WARN] 无有效图片返回 dish_id={dish.dish_id}")
                     continue
+                    
                 print(f"[OK] {dish.dish_id} -> {image_url}")
                 if not args.dry:
                     dish.image_url = image_url

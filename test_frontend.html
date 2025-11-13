@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>前端调试</title>
+</head>
+<body>
+    <h1>API 测试</h1>
+    <div id="status"></div>
+    <pre id="result"></pre>
+    
+    <script>
+        async function test() {
+            const statusDiv = document.getElementById('status');
+            const resultPre = document.getElementById('result');
+            
+            try {
+                statusDiv.textContent = '正在调用 /api/dishes...';
+                const res = await fetch('/api/dishes');
+                statusDiv.textContent = `状态码: ${res.status}`;
+                
+                const data = await res.json();
+                resultPre.textContent = JSON.stringify(data, null, 2);
+                
+                console.log('获取到', data.length, '道菜品');
+            } catch (error) {
+                statusDiv.textContent = '错误: ' + error.message;
+                resultPre.textContent = error.stack;
+            }
+        }
+        
+        test();
+    </script>
+</body>
+</html>
+

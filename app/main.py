@@ -59,3 +59,9 @@ def health_check():
     """健康检查接口"""
     return {"status": "ok"}
 
+@app.get("/test", response_class=HTMLResponse)
+async def test_page():
+    """调试页面"""
+    with open("test_frontend.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
+
