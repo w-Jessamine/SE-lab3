@@ -58,6 +58,23 @@ class InventoryService:
         dish.update_stock(delta)
         self.db.commit()
     
+    def adjust_stock_batch(self, updates: list[tuple[int, int]]) -> None:
+        """
+        批量调整库存
+        参数：updates = [(dish_id, delta), ...]
+        事务性：任一失败则整体回滚
+        """
+        try:
+            for dish_id, delta in updates:
+                dish = self.db.query(Dish).filter(Dish.dish_id == dish_id).first()
+                if not dish:
+                    raise ValueError(f"菜品不存在：dish_id={dish_id}")
+                dish.update_stock(delta)
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+    
     def get_stock(self, dish_id: int) -> int:
         """
         查询实时库存
