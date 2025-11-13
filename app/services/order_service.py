@@ -2,7 +2,7 @@
 from decimal import Decimal
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
+from sqlalchemy import and_, update as sa_update
 from app.models.order import Order, OrderItem
 from app.models.dish import Dish, OptionItem
 from app.models.enums import OrderStatus
@@ -49,25 +49,11 @@ class OrderService:
             
             # 处理每个订单项
             for item_dto in dto.items:
-                # 加锁查询菜品（防止并发修改）
-                dish = self.db.query(Dish).filter(
-                    Dish.dish_id == item_dto.dish_id
-                ).with_for_update().first()
-                
+                # 查询菜品（用于价格与名称快照）；并发校验在条件更新时完成
+                dish = self.db.query(Dish).filter(Dish.dish_id == item_dto.dish_id).first()
                 if not dish:
                     raise ValueError(f"菜品不存在：dish_id={item_dto.dish_id}")
-                
-                # 校验菜品状态与库存
-                if not dish.is_available():
-                    raise ValueError(
-                        f"菜品不可用：{dish.name}（状态={dish.status.value}，库存={dish.stock}）"
-                    )
-                
-                if dish.stock < item_dto.qty:
-                    raise ValueError(
-                        f"库存不足：{dish.name} 当前库存 {dish.stock}，需要 {item_dto.qty}"
-                    )
-                
+
                 # 查询选中的口味选项
                 selected_options = []
                 if item_dto.option_item_ids:
@@ -85,8 +71,18 @@ class OrderService:
                 item_total = (dish.price + option_price) * item_dto.qty
                 total_price += item_total
                 
-                # 扣减库存
-                dish.update_stock(-item_dto.qty)
+                # 并发安全的条件扣减库存（SQLite 兼容）
+                result = self.db.execute(
+                    sa_update(Dish)
+                    .where(
+                        Dish.dish_id == item_dto.dish_id,
+                        Dish.status == dish.status.__class__.ON_SHELF,
+                        Dish.stock >= item_dto.qty,
+                    )
+                    .values(stock=Dish.stock - item_dto.qty)
+                )
+                if result.rowcount == 0:
+                    raise ValueError(f"库存不足：{dish.name} 当前库存 {dish.stock}，需要 {item_dto.qty}")
                 
                 # 创建订单项
                 order_item = OrderItem(

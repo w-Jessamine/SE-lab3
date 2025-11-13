@@ -40,6 +40,8 @@ class InventoryService:
             raise ValueError(f"库存不足：{dish.name} 当前库存 {dish.stock}，需要 {qty}")
         
         dish.update_stock(-qty)
+        # 确保其他会话可见，且 refresh 能读取到
+        self.db.flush()
     
     def adjust_stock(self, dish_id: int, delta: int) -> None:
         """
