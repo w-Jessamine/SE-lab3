@@ -36,7 +36,7 @@ def create_dish(dto: DishCreate, db: Session = Depends(get_db)):
 @router.patch("/dishes/{dish_id}/status", response_model=DishResponse)
 def update_dish_status(
     dish_id: int,
-    status: str = Body(..., embed=True, regex="^(OnShelf|OffShelf)$"),
+    status: str = Body(..., embed=True, pattern="^(OnShelf|OffShelf)$"),
     db: Session = Depends(get_db)
 ):
     """

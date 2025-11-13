@@ -36,7 +36,7 @@ class DishCreate(BaseModel):
     price: Decimal = Field(..., gt=0)
     image_url: str = ""
     stock: int = Field(default=0, ge=0)
-    status: str = Field(default="OnShelf", regex="^(OnShelf|OffShelf)$")
+    status: str = Field(default="OnShelf", pattern="^(OnShelf|OffShelf)$")
 
 
 class DishUpdate(BaseModel):
@@ -45,5 +45,5 @@ class DishUpdate(BaseModel):
     price: Optional[Decimal] = Field(None, gt=0)
     image_url: Optional[str] = None
     stock: Optional[int] = Field(None, ge=0)
-    status: Optional[str] = Field(None, regex="^(OnShelf|OffShelf)$")
+    status: Optional[str] = Field(None, pattern="^(OnShelf|OffShelf)$")
 
