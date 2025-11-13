@@ -334,6 +334,26 @@
                 height: 80px;
             }
         }
+        /* 详情弹窗 */
+        .modal-mask {
+            position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none;
+            align-items: center; justify-content: center; z-index: 1200;
+        }
+        .modal-mask.active { display: flex; }
+        .modal {
+            width: 92%; max-width: 520px; background: #fff; border-radius: 16px; padding: 18px;
+        }
+        .modal-title { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 10px; }
+        .option-group { margin: 12px 0; }
+        .opt-title { font-size: 14px; color: #666; margin-bottom: 8px; }
+        .opt-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+        .opt-tag {
+            padding: 6px 12px; border-radius: 16px; border: 1px solid #E5E5E5; cursor: pointer; font-size: 13px;
+        }
+        .opt-tag.active { background: #FF8855; color: #fff; border-color: #FF8855; }
+        .qty-row { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+        .primary-btn { width: 100%; margin-top: 12px; padding: 12px; border: none; background: #FF8855; color: #fff; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .primary-btn:hover { background: #FF7744; }
     </style>
 </head>
 <body>
@@ -387,10 +407,34 @@
         <div class="cart-count" id="cartCount">0</div>
     </div>
 
+    <!-- 菜品详情弹窗 -->
+    <div id="detailModal" class="modal-mask">
+      <div class="modal">
+        <div class="modal-title" id="detailTitle">选择口味与数量</div>
+        <div id="detailOptions"></div>
+        <div class="option-group">
+          <div class="opt-title">备注</div>
+          <textarea id="detailRemark" style="width:100%;height:70px;border:1px solid #E5E5E5;border-radius:8px;padding:8px;" placeholder="口味偏好、忌口等"></textarea>
+        </div>
+        <div class="qty-row">
+          <span style="color:#666;">数量</span>
+          <button class="qty-btn" onclick="changeDetailQty(-1)">−</button>
+          <div class="qty-display" id="detailQty">1</div>
+          <button class="qty-btn" onclick="changeDetailQty(1)">+</button>
+        </div>
+        <button class="primary-btn" onclick="confirmAddToCart()">加入购物车</button>
+      </div>
+    </div>
+
     <script>
         let currentUser = null;
         let currentCategory = null;
-        let cart = {};
+        // 购物车改为明细数组：[{dish_id, qty, option_item_ids:[], remark}]
+        let cart = [];
+        let currentDish = null; // 弹窗中正在配置的菜品
+        let currentOptions = []; // 弹窗口味组选项
+        let selectedOptionIds = new Set();
+        let detailQty = 1;
 
         function showLogin() {
             document.getElementById('loginModal').classList.add('active');
@@ -464,7 +508,7 @@
                 const container = document.getElementById('dishesContainer');
                 
                 container.innerHTML = dishes.map(dish => {
-                    const qty = cart[dish.dish_id] || 0;
+                    const qty = cart.filter(i => i.dish_id === dish.dish_id).reduce((s,i)=>s+i.qty,0);
                     const isAvailable = dish.status === 'OnShelf' && dish.stock > 0;
                     
                     return `
@@ -485,7 +529,7 @@
                                             <div class="dish-stock">库存 ${dish.stock}份</div>
                                         </div>
                                         <button class="add-btn" 
-                                            onclick="addToCart(${dish.dish_id})" 
+                                            onclick='openDishDetail(${JSON.stringify("${")}'+dish.dish_id+JSON.stringify("${}")})' 
                                             ${!isAvailable || qty >= dish.stock ? 'disabled' : ''}>
                                             +
                                         </button>
@@ -499,23 +543,65 @@
                 console.error('加载菜品失败:', error);
             }
         }
-
-        function addToCart(dishId) {
-            if (!currentUser) {
-                showLogin();
-                return;
+        async function openDishDetail(dishId) {
+            if (!currentUser) { showLogin(); return; }
+            // 初始化
+            currentDish = dishId;
+            detailQty = 1;
+            selectedOptionIds = new Set();
+            document.getElementById('detailQty').textContent = detailQty;
+            document.getElementById('detailRemark').value = '';
+            // 拉取口味组
+            try {
+                const [dishRes, optRes] = await Promise.all([
+                    fetch(`/api/dishes/${dishId}`),
+                    fetch(`/api/dishes/${dishId}/options`)
+                ]);
+                const dish = await dishRes.json();
+                const groups = await optRes.json();
+                document.getElementById('detailTitle').textContent = dish.name;
+                currentOptions = groups;
+                // 渲染选项
+                const wrap = document.getElementById('detailOptions');
+                wrap.innerHTML = groups.map(g => {
+                    const items = g.items.map(it => `<span class="opt-tag" data-id="${it.item_id}" data-group="${g.group_id}" data-type="${g.type}" onclick="toggleOpt(this)">${it.name}${Number(it.price_delta)>0?` +¥${it.price_delta}`:''}</span>`).join('');
+                    return `<div class="option-group"><div class="opt-title">${g.name}${g.required?'（必选）':''}</div><div class="opt-tags">${items}</div></div>`;
+                }).join('');
+                document.getElementById('detailModal').classList.add('active');
+            } catch(e){ console.error(e); }
+        }
+        function toggleOpt(el){
+            const id = parseInt(el.getAttribute('data-id'));
+            const groupId = el.getAttribute('data-group');
+            const type = el.getAttribute('data-type'); // Single/Multiple
+            if(type === 'Single'){
+                // 取消同组其它
+                document.querySelectorAll(`.opt-tag[data-group="${groupId}"]`).forEach(n=>{
+                    n.classList.remove('active');
+                    selectedOptionIds.delete(parseInt(n.getAttribute('data-id')));
+                });
+                el.classList.add('active');
+                selectedOptionIds.add(id);
+            } else {
+                if(el.classList.contains('active')) { el.classList.remove('active'); selectedOptionIds.delete(id); }
+                else { el.classList.add('active'); selectedOptionIds.add(id); }
             }
-            
-            if (!cart[dishId]) cart[dishId] = 0;
-            cart[dishId]++;
-            
+        }
+        function changeDetailQty(delta){
+            detailQty = Math.max(1, detailQty + delta);
+            document.getElementById('detailQty').textContent = detailQty;
+        }
+        function confirmAddToCart(){
+            const remark = document.getElementById('detailRemark').value.trim();
+            cart.push({ dish_id: currentDish, qty: detailQty, option_item_ids: Array.from(selectedOptionIds), remark });
             localStorage.setItem('cart', JSON.stringify(cart));
             updateCartCount();
+            document.getElementById('detailModal').classList.remove('active');
             loadDishes();
         }
 
         function updateCartCount() {
-            const count = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+            const count = cart.reduce((sum, it) => sum + it.qty, 0);
             document.getElementById('cartCount').textContent = count;
         }
 

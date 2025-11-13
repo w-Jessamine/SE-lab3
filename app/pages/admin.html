@@ -721,7 +721,7 @@
                         <td style="color: #FF8855; font-weight: bold;">¥${order.total_price}</td>
                         <td><span class="order-status status-${order.status.toLowerCase()}">${order.status}</span></td>
                         <td>
-                            <button class="action-btn btn-primary">详情</button>
+                            <button class="action-btn btn-primary" onclick="showOrderDetail(${order.order_id})">详情</button>
                             ${order.status === 'Submitted' ? 
                                 `<button class="action-btn btn-success" onclick="completeOrder(${order.order_id})">完成</button>` : 
                                 ''}
@@ -767,15 +767,15 @@
                 const dishes = await res.json();
                 
                 const tbody = document.getElementById('inventoryBody');
-                tbody.innerHTML = dishes.filter(d => d.stock < 20).map(dish => `
+                tbody.innerHTML = dishes.map(dish => `
                     <tr>
                         <td>${dish.dish_id}</td>
                         <td>${dish.name}</td>
-                        <td style="color: ${dish.stock < 10 ? '#F44336' : '#FF9800'}; font-weight: bold;">
+                        <td style="color: ${dish.stock === 0 ? '#F44336' : '#333'}; font-weight: bold;">
                             ${dish.stock}份
                         </td>
-                        <td><span class="order-status ${dish.stock === 0 ? 'status-cancelled' : 'status-submitted'}">
-                            ${dish.stock === 0 ? '已售罄' : '库存紧张'}
+                        <td><span class="order-status ${dish.status === 'OnShelf' ? 'status-submitted' : 'status-cancelled'}">
+                            ${dish.status === 'OnShelf' ? '在售' : '下架'}
                         </span></td>
                         <td>
                             <button class="action-btn btn-success" onclick="quickAdjust(${dish.dish_id}, 10)">补货</button>
@@ -869,6 +869,15 @@
             document.getElementById('adjustDishId').value = dishId;
             document.getElementById('adjustDelta').value = delta;
             adjustInventory();
+        }
+        async function showOrderDetail(orderId){
+            try{
+                const res = await fetch(`/api/admin/orders/${orderId}`);
+                const data = await res.json();
+                if(!res.ok){ alert(data.detail || '加载失败'); return; }
+                const items = data.items.map(i=>`${i.dish_name} × ${i.qty}（¥${i.subtotal}）`).join('\\n');
+                alert(`订单号：#A${String(data.order_id).padStart(12,'0')}\\n状态：${data.status}\\n总价：¥${data.total_price}\\n\\n明细：\\n${items}`);
+            }catch(e){ alert('加载失败：'+e.message); }
         }
 
         // 添加样式让content-section默认隐藏

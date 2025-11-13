@@ -284,7 +284,8 @@
     </div>
 
     <script>
-        let cart = {};
+        // 明细购物车
+        let cart = [];
         let currentUser = null;
         let dishes = {};
 
@@ -313,15 +314,25 @@
             const container = document.getElementById('cartContainer');
             container.innerHTML = '';
             
-            for (const [dishId, qty] of Object.entries(cart)) {
+            for (const item of cart) {
                 try {
-                    const res = await fetch(`/api/dishes/${dishId}`);
+                    const res = await fetch(`/api/dishes/${item.dish_id}`);
                     const dish = await res.json();
-                    dishes[dishId] = dish;
+                    dishes[item.dish_id] = dish;
                     
-                    const subtotal = dish.price * qty;
+                    // 拉取选择的选项用于显示加价
+                    let add = 0;
+                    if (item.option_item_ids && item.option_item_ids.length) {
+                        const optGroups = await (await fetch(`/api/dishes/${item.dish_id}/options`)).json();
+                        const allOpts = optGroups.flatMap(g => g.items);
+                        item.option_item_ids.forEach(id => {
+                            const found = allOpts.find(o => o.item_id === id);
+                            if (found) add += Number(found.price_delta || 0);
+                        });
+                    }
+                    const subtotal = (Number(dish.price) + add) * item.qty;
                     total += subtotal;
-                    itemCount += qty;
+                    itemCount += item.qty;
                     
                     container.innerHTML += `
                         <div class="cart-item">
@@ -329,9 +340,9 @@
                                 <div class="item-name">${dish.name}</div>
                                 <div class="item-price">¥${dish.price}</div>
                             </div>
-                            <div class="item-desc">标准份 • 辣度中</div>
+                            <div class="item-desc">${item.remark ? item.remark : '标准份'}</div>
                             <div class="item-footer">
-                                <div class="qty-label">数量：${qty}</div>
+                                <div class="qty-label">数量：${item.qty}</div>
                                 <div class="subtotal">
                                     小计 <span class="subtotal-price">¥${subtotal.toFixed(2)}</span>
                                 </div>
@@ -348,10 +359,10 @@
         }
 
         async function submitOrder() {
-            const items = Object.entries(cart).map(([dishId, qty]) => ({
-                dish_id: parseInt(dishId),
-                qty: qty,
-                option_item_ids: []
+            const items = cart.map(i => ({
+                dish_id: parseInt(i.dish_id),
+                qty: i.qty,
+                option_item_ids: i.option_item_ids || []
             }));
             
             const orderData = {
@@ -384,7 +395,8 @@
                 // 填充订单信息
                 document.getElementById('orderNumber').textContent = `#A${order.order_id.toString().padStart(12, '0')}`;
                 document.getElementById('orderTime').textContent = new Date().toLocaleString('zh-CN');
-                document.getElementById('orderCount').textContent = `${Object.keys(cart).length}件`;
+                const cnt = items.reduce((s,i)=>s+i.qty,0);
+                document.getElementById('orderCount').textContent = `${cnt}件`;
                 document.getElementById('orderTotal').textContent = `¥${order.total_price}`;
                 
             } catch (error) {
