@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点单程序网 - 菜品浏览</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .user-section {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .user-section input {
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            font-size: 1em;
+            margin-right: 10px;
+            outline: none;
+        }
+        .user-section button {
+            padding: 10px 30px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .user-section button:hover {
+            background: #5568d3;
+        }
+        .categories {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .category-btn {
+            padding: 12px 25px;
+            background: #f0f0f0;
+            border: 2px solid transparent;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            font-weight: 500;
+        }
+        .category-btn:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+        }
+        .category-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #5568d3;
+        }
+        .dishes {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        .dish-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .dish-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .dish-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            color: white;
+        }
+        .dish-info {
+            padding: 20px;
+        }
+        .dish-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .dish-price {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .dish-stock {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .stock-label {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .stock-available {
+            background: #d4edda;
+            color: #155724;
+        }
+        .stock-low {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .stock-out {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .qty-control {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .qty-btn {
+            width: 35px;
+            height: 35px;
+            border: none;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .qty-btn:hover {
+            background: #5568d3;
+        }
+        .qty-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .qty-display {
+            font-size: 1.2em;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+        .cart-float {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            cursor: pointer;
+            transition: transform 0.3s;
+            font-size: 1.8em;
+        }
+        .cart-float:hover {
+            transform: scale(1.1);
+        }
+        .cart-count {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ff4757;
+            color: white;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.5em;
+            font-weight: bold;
+        }
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            .dishes {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🍽️ 点单程序网</h1>
+        <p class="subtitle">系统仅处理订单信息，不涉及在线支付</p>
+        
+        <div class="user-section" id="userSection">
+            <input type="text" id="usernameInput" placeholder="输入用户名（游客可跳过）">
+            <button onclick="login()">登录/注册</button>
+            <span id="userDisplay" style="display:none; margin-left: 20px; font-weight: bold;"></span>
+        </div>
+
+        <div class="categories" id="categories"></div>
+        <div class="dishes" id="dishes"></div>
+    </div>
+
+    <div class="cart-float" onclick="goToCheckout()">
+        🛒
+        <div class="cart-count" id="cartCount">0</div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let currentCategory = null;
+        let cart = {};
+
+        async function login() {
+            const username = document.getElementById('usernameInput').value.trim() || 'guest_' + Date.now();
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({username})
+                });
+                const user = await res.json();
+                currentUser = user;
+                document.getElementById('usernameInput').style.display = 'none';
+                document.querySelector('.user-section button').style.display = 'none';
+                document.getElementById('userDisplay').style.display = 'inline';
+                document.getElementById('userDisplay').textContent = `👤 ${user.username}${user.is_admin ? ' (管理员)' : ''}`;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+            } catch (error) {
+                alert('登录失败：' + error);
+            }
+        }
+
+        async function loadCategories() {
+            try {
+                const res = await fetch('/api/categories');
+                const categories = await res.json();
+                const container = document.getElementById('categories');
+                
+                container.innerHTML = '<button class="category-btn active" onclick="selectCategory(null)">全部</button>';
+                categories.forEach(cat => {
+                    container.innerHTML += `<button class="category-btn" onclick="selectCategory(${cat.category_id})">${cat.name}</button>`;
+                });
+            } catch (error) {
+                console.error('加载分类失败:', error);
+            }
+        }
+
+        function selectCategory(categoryId) {
+            currentCategory = categoryId;
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadDishes();
+        }
+
+        async function loadDishes() {
+            try {
+                const url = currentCategory ? `/api/dishes?category_id=${currentCategory}` : '/api/dishes';
+                const res = await fetch(url);
+                const dishes = await res.json();
+                const container = document.getElementById('dishes');
+                
+                container.innerHTML = dishes.map(dish => {
+                    const stockStatus = dish.stock > 10 ? 'available' : dish.stock > 0 ? 'low' : 'out';
+                    const stockText = dish.stock > 0 ? `库存 ${dish.stock}` : '已售罄';
+                    const qty = cart[dish.dish_id] || 0;
+                    
+                    return `
+                        <div class="dish-card">
+                            <div class="dish-image">${dish.name[0]}</div>
+                            <div class="dish-info">
+                                <div class="dish-name">${dish.name}</div>
+                                <div class="dish-price">¥${dish.price}</div>
+                                <div class="dish-stock">
+                                    <span class="stock-label stock-${stockStatus}">${stockText}</span>
+                                </div>
+                                <div class="qty-control">
+                                    <button class="qty-btn" onclick="changeQty(${dish.dish_id}, -1)" ${qty === 0 ? 'disabled' : ''}>−</button>
+                                    <div class="qty-display">${qty}</div>
+                                    <button class="qty-btn" onclick="changeQty(${dish.dish_id}, 1)" ${dish.stock <= qty || dish.status !== 'OnShelf' ? 'disabled' : ''}>+</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('加载菜品失败:', error);
+            }
+        }
+
+        function changeQty(dishId, delta) {
+            if (!cart[dishId]) cart[dishId] = 0;
+            cart[dishId] += delta;
+            if (cart[dishId] <= 0) delete cart[dishId];
+            
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            loadDishes();
+        }
+
+        function updateCartCount() {
+            const count = Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+            document.getElementById('cartCount').textContent = count;
+        }
+
+        function goToCheckout() {
+            if (Object.keys(cart).length === 0) {
+                alert('购物车是空的！');
+                return;
+            }
+            if (!currentUser) {
+                alert('请先登录！');
+                return;
+            }
+            window.location.href = '/checkout';
+        }
+
+        // 初始化
+        window.onload = () => {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                document.getElementById('usernameInput').style.display = 'none';
+                document.querySelector('.user-section button').style.display = 'none';
+                document.getElementById('userDisplay').style.display = 'inline';
+                document.getElementById('userDisplay').textContent = `👤 ${currentUser.username}${currentUser.is_admin ? ' (管理员)' : ''}`;
+            }
+            
+            const savedCart = localStorage.getItem('cart');
+            if (savedCart) cart = JSON.parse(savedCart);
+            
+            updateCartCount();
+            loadCategories();
+            loadDishes();
+        };
+    </script>
+</body>
+</html>
+

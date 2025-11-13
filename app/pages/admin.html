@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>后台管理 - 点单程序网</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .tab {
+            padding: 12px 25px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 10px 10px 0 0;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .tab:hover {
+            background: #e0e0e0;
+        }
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+        .status-submitted {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #f0f0f0;
+            color: #333;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+        .back-btn:hover {
+            background: #e0e0e0;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            table {
+                font-size: 0.9em;
+            }
+            .tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">← 返回前台</a>
+        
+        <h1>🛠️ 后台管理</h1>
+        <p class="subtitle">菜品管理 · 库存调整 · 订单查看</p>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('inventory')">库存管理</button>
+            <button class="tab" onclick="switchTab('orders')">订单管理</button>
+        </div>
+        
+        <!-- 库存管理 -->
+        <div id="inventory" class="tab-content active">
+            <div class="section">
+                <div class="section-title">调整库存</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; align-items: end;">
+                    <div class="form-group">
+                        <label>菜品ID</label>
+                        <input type="number" id="adjustDishId" placeholder="输入菜品ID">
+                    </div>
+                    <div class="form-group">
+                        <label>调整量（可正可负）</label>
+                        <input type="number" id="adjustDelta" placeholder="如：+10 或 -5">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" onclick="adjustInventory()">调整库存</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">上下架菜品</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 10px; align-items: end;">
+                    <div class="form-group">
+                        <label>菜品ID</label>
+                        <input type="number" id="statusDishId" placeholder="输入菜品ID">
+                    </div>
+                    <div class="form-group">
+                        <label>状态</label>
+                        <select id="dishStatus">
+                            <option value="OnShelf">上架</option>
+                            <option value="OffShelf">下架</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button class="btn btn-primary" onclick="updateDishStatus()">更新状态</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 订单管理 -->
+        <div id="orders" class="tab-content">
+            <div class="section">
+                <div class="section-title">订单列表</div>
+                <div style="margin-bottom: 15px;">
+                    <label>筛选状态：</label>
+                    <select id="orderStatusFilter" onchange="loadOrders()" style="padding: 8px; border-radius: 5px;">
+                        <option value="">全部</option>
+                        <option value="Submitted">已提交</option>
+                        <option value="Completed">已完成</option>
+                        <option value="Cancelled">已取消</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadOrders()" style="margin-left: 10px;">刷新</button>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>订单号</th>
+                            <th>用户ID</th>
+                            <th>状态</th>
+                            <th>总价</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'orders') {
+                loadOrders();
+            }
+        }
+
+        async function adjustInventory() {
+            const dishId = document.getElementById('adjustDishId').value;
+            const delta = document.getElementById('adjustDelta').value;
+            
+            if (!dishId || !delta) {
+                alert('请填写完整信息');
+                return;
+            }
+            
+            try {
+                const res = await fetch(`/api/admin/inventory/adjust?dish_id=${dishId}&delta=${delta}`, {
+                    method: 'POST'
+                });
+                
+                if (!res.ok) {
+                    const error = await res.json();
+                    throw new Error(error.detail || '调整失败');
+                }
+                
+                alert('✅ 库存调整成功！');
+                document.getElementById('adjustDishId').value = '';
+                document.getElementById('adjustDelta').value = '';
+            } catch (error) {
+                alert('调整失败：' + error.message);
+            }
+        }
+
+        async function updateDishStatus() {
+            const dishId = document.getElementById('statusDishId').value;
+            const status = document.getElementById('dishStatus').value;
+            
+            if (!dishId) {
+                alert('请输入菜品ID');
+                return;
+            }
+            
+            try {
+                const res = await fetch(`/api/admin/dishes/${dishId}/status`, {
+                    method: 'PATCH',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({status})
+                });
+                
+                if (!res.ok) {
+                    const error = await res.json();
+                    throw new Error(error.detail || '更新失败');
+                }
+                
+                alert('✅ 状态更新成功！');
+                document.getElementById('statusDishId').value = '';
+            } catch (error) {
+                alert('更新失败：' + error.message);
+            }
+        }
+
+        async function loadOrders() {
+            const status = document.getElementById('orderStatusFilter').value;
+            const url = status ? `/api/admin/orders?status=${status}` : '/api/admin/orders';
+            
+            try {
+                const res = await fetch(url);
+                const orders = await res.json();
+                const tbody = document.getElementById('ordersTableBody');
+                
+                tbody.innerHTML = orders.map(order => `
+                    <tr>
+                        <td>${order.order_id}</td>
+                        <td>${order.user_id}</td>
+                        <td><span class="status-badge status-${order.status.toLowerCase()}">${order.status}</span></td>
+                        <td>¥${order.total_price}</td>
+                        <td>${new Date(order.created_at).toLocaleString('zh-CN')}</td>
+                        <td>
+                            ${order.status === 'Submitted' ? 
+                                `<button class="btn btn-success" style="padding: 6px 15px;" onclick="completeOrder(${order.order_id})">完成</button>` : 
+                                '-'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('加载订单失败:', error);
+            }
+        }
+
+        async function completeOrder(orderId) {
+            if (!confirm('确认完成此订单？')) return;
+            
+            try {
+                const res = await fetch(`/api/admin/orders/${orderId}/complete`, {
+                    method: 'POST'
+                });
+                
+                if (!res.ok) {
+                    const error = await res.json();
+                    throw new Error(error.detail || '操作失败');
+                }
+                
+                alert('✅ 订单已完成！');
+                loadOrders();
+            } catch (error) {
+                alert('操作失败：' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
+
