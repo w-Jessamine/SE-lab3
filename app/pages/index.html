@@ -514,7 +514,9 @@
                     return `
                         <div class="dish-card">
                             <div class="dish-content">
-                                <div class="dish-image">菜品图片</div>
+                                <div class="dish-image">
+                                  ${dish.image_url ? `<img src="${dish.image_url}" alt="${dish.name}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"/>` : '菜品图片'}
+                                </div>
                                 <div class="dish-info">
                                     <div>
                                         <div class="dish-header">
@@ -529,7 +531,7 @@
                                             <div class="dish-stock">库存 ${dish.stock}份</div>
                                         </div>
                                         <button class="add-btn" 
-                                            onclick='openDishDetail(${JSON.stringify("${")}'+dish.dish_id+JSON.stringify("${}")})' 
+                                            onclick="openDishDetail(${dish.dish_id})" 
                                             ${!isAvailable || qty >= dish.stock ? 'disabled' : ''}>
                                             +
                                         </button>

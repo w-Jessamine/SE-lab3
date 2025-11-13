@@ -280,7 +280,7 @@
         </div>
         
         <a href="/" class="back-home-btn">返回首页</a>
-        <div class="view-order-link">查看订单详情 →</div>
+        <div class="view-order-link" id="viewOrderLink">查看订单详情 →</div>
     </div>
 
     <script>
@@ -398,6 +398,7 @@
                 const cnt = items.reduce((s,i)=>s+i.qty,0);
                 document.getElementById('orderCount').textContent = `${cnt}件`;
                 document.getElementById('orderTotal').textContent = `¥${order.total_price}`;
+                document.getElementById('viewOrderLink').onclick = ()=>{ window.location.href = `/order/${order.order_id}`; }
                 
             } catch (error) {
                 alert('下单失败：' + error.message);

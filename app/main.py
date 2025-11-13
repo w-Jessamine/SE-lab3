@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from app.db import init_db
 from app.api import auth, menu, order, admin
+from fastapi import Request
 
 # 创建 FastAPI 应用
 app = FastAPI(
@@ -48,6 +49,10 @@ async def admin_page(request: Request):
     """渲染后台管理页"""
     return templates.TemplateResponse("admin.html", {"request": request})
 
+@app.get("/order/{order_id}", response_class=HTMLResponse)
+async def order_detail_page(request: Request, order_id: int):
+    """渲染订单详情页（JS 调用 API 获取数据）"""
+    return templates.TemplateResponse("order_detail.html", {"request": request})
 
 @app.get("/health")
 def health_check():

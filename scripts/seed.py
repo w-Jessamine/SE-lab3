@@ -91,6 +91,17 @@ def seed_data():
         db.add_all(dishes)
         db.flush()
         print(f"✅ 创建{len(dishes)}道菜品")
+        # 若本地已有生成的图片，则自动关联（1..20）
+        static_dir = os.path.join(os.path.dirname(__file__), "..", "app", "static", "images")
+        static_dir = os.path.abspath(static_dir)
+        linked = 0
+        for d in dishes:
+            candidate = os.path.join(static_dir, f"dish_{d.dish_id}.jpg")
+            if os.path.exists(candidate):
+                d.image_url = f"/static/images/dish_{d.dish_id}.jpg"
+                linked += 1
+        if linked:
+            print(f"✅ 自动关联图片 {linked} 张")
         
         # 4. 为部分菜品添加口味选项
         # 宫保鸡丁 - 辣度（单选）
