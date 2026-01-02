@@ -1,0 +1,50 @@
+{
+  "1": {
+    "CWE": "CWE-285",
+    "name": "Admin API missing authentication/authorization (anyone can manage dishes, inventory, and orders)",
+    "File": "exp4_injected/app/api/admin.py",
+    "Line": "33",
+    "At": "@router.post(\"/dishes\", response_model=DishResponse, status_code=201)",
+    "Information": "触发条件：任意客户端直接请求后台接口即可执行管理操作。输入来源：HTTP 请求（如 Query: dish_id/delta；JSON Body: items；Path: order_id）。证据：该路由文件声明一组 /api/admin 接口，但所有端点都未依赖任何“当前用户/鉴权/管理员校验”的 Depends；并且在 create_dish 的注释中明确写了“权限：管理员（本演示暂不验证权限）”(L37-L38)。例如库存调整接口直接暴露：adjust_inventory(dish_id: Query, delta: Query) (L72-L87) 与 adjust_inventory_batch(items: list[BatchAdjustItem]) (L89-L99)，订单全量查看与操作也直接暴露 (L102-L115, L116-L126, L128-L140)。缺少的上下文：若项目另有全局中间件强制鉴权，这里未展示；但仅从该文件可见并未做任何校验。"
+  },
+  "2": {
+    "CWE": "CWE-285",
+    "name": "IDOR: order detail/cancel endpoints lack ownership check (anyone can read/cancel others' orders by ID)",
+    "File": "exp4_injected/app/api/order.py",
+    "Line": "27",
+    "At": "@router.get(\"/orders/{order_id}\", response_model=OrderDetailResponse)",
+    "Information": "触发条件：攻击者枚举或猜测 order_id，直接调用查询/取消接口。输入来源：HTTP Path 参数 order_id（get_order: L28；cancel_order: L41）。证据：get_order() 直接调用 service.get_order_by_id(order_id) 并返回 (L33-L37)；cancel_order() 直接调用 service.cancel_order(order_id) (L47-L51)。在业务层同样未校验归属：OrderService.get_order_by_id() 仅按 order_id 查询 (L148-L150) 并返回 order.user_id 等信息 (L164-L172)；OrderService.cancel_order() 仅按 order_id 查询后执行 order.cancel() (L123-L128)。缺少的上下文：未看到任何“当前登录用户”的注入或全局鉴权机制。"
+  },
+  "3": {
+    "CWE": "CWE-285",
+    "name": "Client-controlled user_id when creating orders enables impersonation/spoofing",
+    "File": "exp4_injected/app/services/order_service.py",
+    "Line": "41",
+    "At": "order = Order(\n                user_id=dto.user_id,",
+    "Information": "触发条件：攻击者在创建订单请求中把 user_id 改成任意受害者的 ID。输入来源：HTTP JSON Body（OrderCreate.user_id），由 create_order(dto: OrderCreate) 直接传入业务层 (exp4_injected/app/api/order.py L11-L24)。证据：OrderCreate 明确包含 user_id 字段 (exp4_injected/app/schemas/order.py L15-L19)，OrderService.create_order() 直接使用 dto.user_id 写入订单 (L40-L44)。缺少的上下文：未看到任何将 user_id 与登录态绑定的逻辑（例如从 token/session 提取 user_id 并覆盖请求体）。"
+  },
+  "4": {
+    "CWE": "CWE-287",
+    "name": "Improper authentication: login endpoint accepts any username and auto-creates users without credential verification",
+    "File": "exp4_injected/app/api/auth.py",
+    "Line": "14",
+    "At": "假登录接口",
+    "Information": "触发条件：任意客户端提交任意 username 即可“登录”；若用户名不存在还会被创建。输入来源：HTTP JSON Body（UserLogin.username），由 login(dto: UserLogin) 接收。证据：注释明确“假登录接口…若 username 存在则返回用户信息；若不存在则创建新用户”(L14-L18)，实现中仅按 username 查询 (L21)，不存在则创建 User(username=dto.username, is_admin=False) 并 commit (L24-L29)，最后直接返回用户信息 (L30)。缺少的上下文：未看到密码校验、token 签发、会话管理等。"
+  },
+  "5": {
+    "CWE": "CWE-703",
+    "name": "Swallowed exceptions in batch stock adjustment lead to silent partial failure and inconsistent inventory state",
+    "File": "exp4_injected/app/services/inventory_service.py",
+    "Line": "73",
+    "At": "except Exception:\n                # 静默忽略错误，导致库存状态可能不一致\n                pass",
+    "Information": "触发条件：批量更新中任一条记录发生异常（如 dish_id 不存在、update_stock 触发 ValueError、DB 异常等）时被吞掉，循环继续，最终仍 commit。输入来源：HTTP JSON Body（/api/admin/inventory/adjust-batch 入参 items），在 admin 路由中转换为 updates 并调用 adjust_stock_batch (exp4_injected/app/api/admin.py L89-L99)。证据：adjust_stock_batch 对每项用 try/except Exception 包裹 (L68-L75)，异常时直接 pass，循环结束后仍执行 self.db.commit() (L76)。"
+  },
+  "6": {
+    "CWE": "CWE-20",
+    "name": "Order option_item_ids not validated to belong to the selected dish (cross-dish option injection)",
+    "File": "exp4_injected/app/services/order_service.py",
+    "Line": "60",
+    "At": "selected_options = self.db.query(OptionItem).filter(\n                        OptionItem.item_id.in_(item_dto.option_item_ids)\n                    ).all()",
+    "Information": "触发条件：客户端在下单时传入不属于该 dish 的 option_item_ids（例如来自其它菜品的选项）。输入来源：HTTP JSON Body（OrderCreate.items[].option_item_ids，见 exp4_injected/app/schemas/order.py L8-L13）。证据：查询选项时仅按 OptionItem.item_id in (...) 过滤 (L60-L62)，随后只校验 opt.available (L65-L67)，未校验这些选项与当前 dish/option_group 的关联关系。缺少的上下文：需要你补充 OptionGroup/OptionItem 与 Dish 的关联约束（例如 OptionItem 是否一定通过 group_id 间接属于 dish，是否有外键/唯一约束防止跨菜品混用，以及 MenuService 创建选项时是否保证隔离）。"
+  }
+}

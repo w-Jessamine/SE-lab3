@@ -1,0 +1,1406 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>点单程序网 · 商家网页端</title>
+  <style>
+    :root {
+      --bg: #FFF8F0;
+      --card: #FFFFFF;
+      --primary: #FF6B35;
+      --secondary: #F7931E;
+      --text: #2C1810;
+      --text-light: #8B6F47;
+      --success: #52B788;
+      --danger: #E63946;
+      --warning: #FFB703;
+      --border: #E8D5C4;
+      --shadow: 0 4px 12px rgba(255, 107, 53, 0.1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #FFF8F0 0%, #FFE8D6 100%);
+      color: var(--text);
+      padding: 20px;
+    }
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 10px;
+      font-size: 32px;
+    }
+    .subtitle {
+      text-align: center;
+      color: var(--text-light);
+      margin-bottom: 40px;
+      font-size: 16px;
+    }
+    .page-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    
+    /* 登录页面 */
+    .login-page {
+      background: white;
+      border-radius: 24px;
+      padding: 60px;
+      max-width: 500px;
+      margin: 80px auto;
+      box-shadow: 0 8px 32px rgba(44, 24, 16, 0.12);
+    }
+    .login-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .logo {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 50px;
+      font-weight: bold;
+      margin: 0 auto 24px;
+    }
+    .app-name {
+      font-size: 32px;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .app-desc {
+      color: var(--text-light);
+      font-size: 16px;
+    }
+    .input-group {
+      margin-bottom: 20px;
+    }
+    .input-label {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--text);
+      font-weight: 500;
+      font-size: 15px;
+    }
+    .input {
+      width: 100%;
+      padding: 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 16px;
+      background: white;
+      color: var(--text);
+    }
+    .btn-primary {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      margin-top: 12px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+    }
+    
+    /* 主界面布局 */
+    .page-section {
+      background: white;
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 4px 20px rgba(44, 24, 16, 0.08);
+    }
+    .page-label {
+      background: var(--primary);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: bold;
+      display: inline-block;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .dashboard {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 24px;
+      min-height: 700px;
+    }
+    
+    /* 侧边栏 */
+    .sidebar {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      height: fit-content;
+    }
+    .sidebar-header {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--border);
+    }
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .nav-item {
+      padding: 14px 16px;
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .nav-item:hover {
+      background: #FFF5F0;
+    }
+    .nav-item.active {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      font-weight: bold;
+    }
+    
+    /* 主内容区 */
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--border);
+    }
+    .content-title {
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--text);
+    }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: #E8F5E9;
+      color: var(--success);
+      border-radius: 12px;
+      font-weight: bold;
+    }
+    
+    /* KPI卡片 */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+    .kpi-card {
+      background: linear-gradient(135deg, #FFF5F0 0%, #FFE8D6 100%);
+      padding: 24px;
+      border-radius: 16px;
+      border: 2px solid var(--border);
+    }
+    .kpi-label {
+      font-size: 14px;
+      color: var(--text-light);
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .kpi-value {
+      font-size: 36px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+    .kpi-trend {
+      font-size: 13px;
+      color: var(--success);
+      margin-top: 8px;
+    }
+    
+    /* 表格 */
+    .table-container {
+      background: white;
+      border-radius: 16px;
+      border: 2px solid var(--border);
+      overflow: hidden;
+    }
+    .table-header {
+      padding: 20px 24px;
+      background: #FFF5F0;
+      border-bottom: 2px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .table-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .filter-group {
+      display: flex;
+      gap: 8px;
+    }
+    .filter-chip {
+      padding: 8px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 13px;
+      background: white;
+      cursor: pointer;
+    }
+    .filter-chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead {
+      background: #FFF8F0;
+    }
+    th {
+      padding: 16px 24px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text);
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    tbody tr:hover {
+      background: #FFFBF7;
+    }
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: bold;
+      display: inline-block;
+    }
+    .status-submitted {
+      background: #E3F2FD;
+      color: #1976D2;
+    }
+    .status-created {
+      background: #FFF9E6;
+      color: var(--warning);
+    }
+    .status-completed {
+      background: #E8F5E9;
+      color: var(--success);
+    }
+    .status-cancelled {
+      background: #FFEBEE;
+      color: var(--danger);
+    }
+    
+    /* 操作按钮 */
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-view {
+      background: #E3F2FD;
+      color: #1976D2;
+    }
+    .btn-edit {
+      background: #FFF9E6;
+      color: var(--warning);
+    }
+    .btn-delete {
+      background: #FFEBEE;
+      color: var(--danger);
+    }
+    .btn-add {
+      padding: 12px 24px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    /* 菜品网格 */
+    .dish-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .dish-card {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    .dish-card:hover {
+      box-shadow: 0 4px 16px rgba(255, 107, 53, 0.15);
+      transform: translateY(-2px);
+    }
+    .dish-image {
+      height: 180px;
+      background: linear-gradient(135deg, #FFE8D6, #FFF8F0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-light);
+      font-size: 14px;
+    }
+    .dish-info {
+      padding: 20px;
+    }
+    .dish-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+    .dish-name {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .dish-price {
+      font-size: 20px;
+      font-weight: bold;
+      color: var(--primary);
+    }
+    .dish-meta {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 16px;
+    }
+    .dish-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    
+    /* 表单 */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .form-label {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text);
+    }
+    .form-input, .form-select, .form-textarea {
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      background: white;
+    }
+    .form-textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+    .image-upload-area {
+      height: 250px;
+      border: 3px dashed var(--border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .image-upload-area:hover {
+      border-color: var(--primary);
+      background: #FFF5F0;
+    }
+    .upload-icon {
+      font-size: 60px;
+    }
+    
+    /* 库存管理 */
+    .stock-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    .stock-card {
+      background: white;
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .stock-info {
+      flex: 1;
+    }
+    .stock-name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .stock-meta {
+      font-size: 13px;
+      color: var(--text-light);
+      margin-bottom: 12px;
+    }
+    .stock-qty {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .stock-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .stock-status {
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .stock-normal {
+      background: #E8F5E9;
+      color: var(--success);
+    }
+    .stock-low {
+      background: #FFF9E6;
+      color: var(--warning);
+    }
+    .stock-out {
+      background: #FFEBEE;
+      color: var(--danger);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>点单程序网 · 商家网页端</h1>
+    <div class="subtitle">纯静态UI展示 · 无交互功能 · 桌面版管理后台</div>
+    
+    <div class="page-wrapper">
+      
+      <!-- 1. 登录页面 -->
+      <div>
+        <div class="page-label">① 商家登录页面</div>
+        <div class="login-page">
+          <div class="login-header">
+            <div class="logo">🏪</div>
+            <div class="app-name">商家管理后台</div>
+            <div class="app-desc">点单程序网 Web 管理系统</div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">管理员账号</label>
+            <input type="text" class="input" placeholder="请输入管理员账号" />
+          </div>
+          <div class="input-group">
+            <label class="input-label">登录密码</label>
+            <input type="password" class="input" placeholder="请输入登录密码" />
+          </div>
+          <button class="btn-primary">登录后台</button>
+        </div>
+      </div>
+
+      <!-- 2. 后台仪表盘 -->
+      <div>
+        <div class="page-label">② 后台仪表盘 / 数据概览</div>
+        <div class="page-section">
+          <div class="dashboard">
+            <div class="sidebar">
+              <div class="sidebar-header">导航菜单</div>
+              <div class="nav-menu">
+                <div class="nav-item active">📊 数据仪表盘</div>
+                <div class="nav-item">📋 订单管理</div>
+                <div class="nav-item">🍜 菜品管理</div>
+                <div class="nav-item">📦 库存管理</div>
+                <div class="nav-item">⚙️ 系统设置</div>
+              </div>
+            </div>
+            
+            <div class="main-content">
+              <div class="content-header">
+                <div class="content-title">数据仪表盘</div>
+                <div class="status-indicator">
+                  <div style="width: 8px; height: 8px; background: var(--success); border-radius: 50%;"></div>
+                  营业中
+                </div>
+              </div>
+              
+              <div class="kpi-grid">
+                <div class="kpi-card">
+                  <div class="kpi-label">今日订单数</div>
+                  <div class="kpi-value">128</div>
+                  <div class="kpi-trend">↑ 较昨日 +12%</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">今日营业额</div>
+                  <div class="kpi-value">¥3,482</div>
+                  <div class="kpi-trend">↑ 较昨日 +8%</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">待处理订单</div>
+                  <div class="kpi-value" style="color: var(--warning);">12</div>
+                  <div class="kpi-trend" style="color: var(--warning);">需要及时处理</div>
+                </div>
+                <div class="kpi-card">
+                  <div class="kpi-label">已完成订单</div>
+                  <div class="kpi-value" style="color: var(--success);">116</div>
+                  <div class="kpi-trend">完成率 90.6%</div>
+                </div>
+              </div>
+              
+              <div class="table-container">
+                <div class="table-header">
+                  <div class="table-title">最新订单</div>
+                  <div class="filter-group">
+                    <div class="filter-chip active">全部</div>
+                    <div class="filter-chip">待确认</div>
+                    <div class="filter-chip">已提交</div>
+                    <div class="filter-chip">已完成</div>
+                  </div>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>订单号</th>
+                      <th>下单时间</th>
+                      <th>菜品数量</th>
+                      <th>订单金额</th>
+                      <th>状态</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>#A20251031015</strong></td>
+                      <td>2025-10-31 12:45</td>
+                      <td>3件</td>
+                      <td style="color: var(--primary); font-weight: bold;">¥116</td>
+                      <td><span class="status-badge status-submitted">已提交</span></td>
+                      <td>
+                        <div class="btn-group">
+                          <button class="btn btn-view">查看</button>
+                          <button class="btn btn-edit">处理</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>#A20251031014</strong></td>
+                      <td>2025-10-31 12:38</td>
+                      <td>2件</td>
+                      <td style="color: var(--primary); font-weight: bold;">¥78</td>
+                      <td><span class="status-badge status-created">待确认</span></td>
+                      <td>
+                        <div class="btn-group">
+                          <button class="btn btn-view">查看</button>
+                          <button class="btn btn-edit">处理</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>#A20251031013</strong></td>
+                      <td>2025-10-31 12:30</td>
+                      <td>4件</td>
+                      <td style="color: var(--primary); font-weight: bold;">¥152</td>
+                      <td><span class="status-badge status-completed">已完成</span></td>
+                      <td>
+                        <div class="btn-group">
+                          <button class="btn btn-view">查看</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>#A20251031012</strong></td>
+                      <td>2025-10-31 12:22</td>
+                      <td>1件</td>
+                      <td style="color: var(--text-light); text-decoration: line-through;">¥38</td>
+                      <td><span class="status-badge status-cancelled">已取消</span></td>
+                      <td>
+                        <div class="btn-group">
+                          <button class="btn btn-view">查看</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>#A20251031011</strong></td>
+                      <td>2025-10-31 12:15</td>
+                      <td>5件</td>
+                      <td style="color: var(--primary); font-weight: bold;">¥188</td>
+                      <td><span class="status-badge status-completed">已完成</span></td>
+                      <td>
+                        <div class="btn-group">
+                          <button class="btn btn-view">查看</button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. 订单管理 -->
+      <div>
+        <div class="page-label">③ 订单管理页面</div>
+        <div class="page-section">
+          <div class="dashboard">
+            <div class="sidebar">
+              <div class="sidebar-header">导航菜单</div>
+              <div class="nav-menu">
+                <div class="nav-item">📊 数据仪表盘</div>
+                <div class="nav-item active">📋 订单管理</div>
+                <div class="nav-item">🍜 菜品管理</div>
+                <div class="nav-item">📦 库存管理</div>
+                <div class="nav-item">⚙️ 系统设置</div>
+              </div>
+            </div>
+            
+            <div class="main-content">
+              <div class="content-header">
+                <div class="content-title">订单管理</div>
+                <div style="display: flex; gap: 12px;">
+                  <input type="text" placeholder="搜索订单号..." style="padding: 10px 16px; border: 2px solid var(--border); border-radius: 10px; width: 250px;" />
+                  <button class="btn-add">刷新订单</button>
+                </div>
+              </div>
+              
+              <div class="table-container">
+                <div class="table-header">
+                  <div class="table-title">订单列表</div>
+                  <div class="filter-group">
+                    <div class="filter-chip active">全部订单</div>
+                    <div class="filter-chip">待确认</div>
+                    <div class="filter-chip">已提交</div>
+                    <div class="filter-chip">已完成</div>
+                    <div class="filter-chip">已取消</div>
+                  </div>
+                </div>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>订单号</th>
+                      <th>下单时间</th>
+                      <th>菜品明细</th>
+                      <th>数量</th>
+                      <th>金额</th>
+                      <th>状态</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>#A20251031015</strong></td>
+                      <td>12:45:23</td>
+                      <td>宫保鸡丁、麻婆豆腐、糖醋里脊</td>
+                      <td>3件</td>
+                      <td style="color: var(--primary); font-weight: bold;">¥116</td>
+                      <td><span class="status-badge status-submitted">已提交</span></td>
+                      <td>
+                        <div class="btn-group">
+                          <button class="btn btn-view">详情</button>
+                          <button class="btn btn-edit">处理</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>#A20251031014</strong></td>
+                      <td>12:38:15</td>
+                      <td>红烧肉、鱼香肉丝</td>
+                      <td>2件</td>
+                      <td style="color: var(--primary); font-weight: bold;">¥78</td>
+                      <td><span class="status-badge status-created">待确认</span></td>
+                      <td>
+                        <div class="btn-group">
+                          <button class="btn btn-view">详情</button>
+                          <button class="btn btn-edit">确认</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>#A20251031013</strong></td>
+                      <td>12:30:42</td>
+                      <td>宫保鸡丁、糖醋里脊、麻婆豆腐、米饭</td>
+                      <td>4件</td>
+                      <td style="color: var(--primary); font-weight: bold;">¥152</td>
+                      <td><span class="status-badge status-completed">已完成</span></td>
+                      <td>
+                        <div class="btn-group">
+                          <button class="btn btn-view">详情</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>#A20251031012</strong></td>
+                      <td>12:22:18</td>
+                      <td>宫保鸡丁</td>
+                      <td>1件</td>
+                      <td style="color: var(--text-light);">¥38</td>
+                      <td><span class="status-badge status-cancelled">已取消</span></td>
+                      <td>
+                        <div class="btn-group">
+                          <button class="btn btn-view">详情</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>#A20251031011</strong></td>
+                      <td>12:15:55</td>
+                      <td>宫保鸡丁、红烧肉、鱼香肉丝、糖醋里脊、米饭</td>
+                      <td>5件</td>
+                      <td style="color: var(--primary); font-weight: bold;">¥188</td>
+                      <td><span class="status-badge status-completed">已完成</span></td>
+                      <td>
+                        <div class="btn-group">
+                          <button class="btn btn-view">详情</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><strong>#A20251031010</strong></td>
+                      <td>12:08:33</td>
+                      <td>麻婆豆腐、米饭</td>
+                      <td>2件</td>
+                      <td style="color: var(--primary); font-weight: bold;">¥32</td>
+                      <td><span class="status-badge status-completed">已完成</span></td>
+                      <td>
+                        <div class="btn-group">
+                          <button class="btn btn-view">详情</button>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. 菜品管理 -->
+      <div>
+        <div class="page-label">④ 菜品管理页面</div>
+        <div class="page-section">
+          <div class="dashboard">
+            <div class="sidebar">
+              <div class="sidebar-header">导航菜单</div>
+              <div class="nav-menu">
+                <div class="nav-item">📊 数据仪表盘</div>
+                <div class="nav-item">📋 订单管理</div>
+                <div class="nav-item active">🍜 菜品管理</div>
+                <div class="nav-item">📦 库存管理</div>
+                <div class="nav-item">⚙️ 系统设置</div>
+              </div>
+            </div>
+            
+            <div class="main-content">
+              <div class="content-header">
+                <div class="content-title">菜品管理</div>
+                <button class="btn-add">+ 添加新菜品</button>
+              </div>
+              
+              <div class="filter-group" style="margin-bottom: 20px;">
+                <div class="filter-chip active">全部菜品</div>
+                <div class="filter-chip">特色菜</div>
+                <div class="filter-chip">肉类</div>
+                <div class="filter-chip">素菜</div>
+                <div class="filter-chip">酒水</div>
+                <div class="filter-chip">主食</div>
+              </div>
+              
+              <div class="dish-grid">
+                <div class="dish-card">
+                  <div class="dish-image">菜品图片</div>
+                  <div class="dish-info">
+                    <div class="dish-header">
+                      <div class="dish-name">宫保鸡丁</div>
+                      <div class="dish-price">¥38</div>
+                    </div>
+                    <div class="dish-meta">特色菜 · 库存: 25份</div>
+                    <div class="dish-meta">川菜经典，香辣可口，鸡丁嫩滑配花生脆香</div>
+                    <div class="dish-footer">
+                      <span class="status-badge status-completed">在售</span>
+                      <div class="btn-group">
+                        <button class="btn btn-edit">编辑</button>
+                        <button class="btn btn-delete">下架</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="dish-card">
+                  <div class="dish-image">菜品图片</div>
+                  <div class="dish-info">
+                    <div class="dish-header">
+                      <div class="dish-name">糖醋里脊</div>
+                      <div class="dish-price">¥42</div>
+                    </div>
+                    <div class="dish-meta">肉类 · 库存: 18份</div>
+                    <div class="dish-meta">酸甜适中，外酥里嫩，色泽金黄诱人</div>
+                    <div class="dish-footer">
+                      <span class="status-badge status-completed">在售</span>
+                      <div class="btn-group">
+                        <button class="btn btn-edit">编辑</button>
+                        <button class="btn btn-delete">下架</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="dish-card" style="opacity: 0.7;">
+                  <div class="dish-image">菜品图片</div>
+                  <div class="dish-info">
+                    <div class="dish-header">
+                      <div class="dish-name">红烧肉</div>
+                      <div class="dish-price">¥45</div>
+                    </div>
+                    <div class="dish-meta" style="color: var(--danger);">肉类 · 库存: 0份 · 已售罄</div>
+                    <div class="dish-meta">肥而不腻，入口即化，色泽红亮</div>
+                    <div class="dish-footer">
+                      <span class="status-badge status-cancelled">售罄</span>
+                      <div class="btn-group">
+                        <button class="btn btn-edit">编辑</button>
+                        <button class="btn btn-view">补货</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="dish-card">
+                  <div class="dish-image">菜品图片</div>
+                  <div class="dish-info">
+                    <div class="dish-header">
+                      <div class="dish-name">麻婆豆腐</div>
+                      <div class="dish-price">¥28</div>
+                    </div>
+                    <div class="dish-meta">素菜 · 库存: 32份</div>
+                    <div class="dish-meta">麻辣鲜香，豆腐嫩滑，下饭必备</div>
+                    <div class="dish-footer">
+                      <span class="status-badge status-completed">在售</span>
+                      <div class="btn-group">
+                        <button class="btn btn-edit">编辑</button>
+                        <button class="btn btn-delete">下架</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="dish-card">
+                  <div class="dish-image">菜品图片</div>
+                  <div class="dish-info">
+                    <div class="dish-header">
+                      <div class="dish-name">鱼香肉丝</div>
+                      <div class="dish-price">¥36</div>
+                    </div>
+                    <div class="dish-meta">肉类 · 库存: 15份</div>
+                    <div class="dish-meta">鱼香浓郁，肉丝滑嫩，酸甜咸辣适中</div>
+                    <div class="dish-footer">
+                      <span class="status-badge status-completed">在售</span>
+                      <div class="btn-group">
+                        <button class="btn btn-edit">编辑</button>
+                        <button class="btn btn-delete">下架</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="dish-card">
+                  <div class="dish-image">菜品图片</div>
+                  <div class="dish-info">
+                    <div class="dish-header">
+                      <div class="dish-name">米饭</div>
+                      <div class="dish-price">¥4</div>
+                    </div>
+                    <div class="dish-meta">主食 · 库存: 50份</div>
+                    <div class="dish-meta">香糯可口的东北大米</div>
+                    <div class="dish-footer">
+                      <span class="status-badge status-completed">在售</span>
+                      <div class="btn-group">
+                        <button class="btn btn-edit">编辑</button>
+                        <button class="btn btn-delete">下架</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. 菜品编辑 -->
+      <div>
+        <div class="page-label">⑤ 菜品编辑/添加页面</div>
+        <div class="page-section">
+          <div class="dashboard">
+            <div class="sidebar">
+              <div class="sidebar-header">导航菜单</div>
+              <div class="nav-menu">
+                <div class="nav-item">📊 数据仪表盘</div>
+                <div class="nav-item">📋 订单管理</div>
+                <div class="nav-item active">🍜 菜品管理</div>
+                <div class="nav-item">📦 库存管理</div>
+                <div class="nav-item">⚙️ 系统设置</div>
+              </div>
+            </div>
+            
+            <div class="main-content">
+              <div class="content-header">
+                <div class="content-title">编辑菜品 - 宫保鸡丁</div>
+                <div class="btn-group">
+                  <button class="btn btn-view">取消</button>
+                  <button class="btn-add">保存修改</button>
+                </div>
+              </div>
+              
+              <div class="form-grid">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label">菜品图片</label>
+                  <div class="image-upload-area">
+                    <div class="upload-icon">📷</div>
+                    <div style="font-size: 16px; font-weight: 600;">点击上传菜品图片</div>
+                    <div style="font-size: 13px;">支持 JPG、PNG 格式，建议尺寸 800x800 像素</div>
+                  </div>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">菜品名称 *</label>
+                  <input type="text" class="form-input" value="宫保鸡丁" placeholder="请输入菜品名称" />
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">菜品分类 *</label>
+                  <select class="form-select">
+                    <option selected>特色菜</option>
+                    <option>肉类</option>
+                    <option>素菜</option>
+                    <option>酒水</option>
+                    <option>主食</option>
+                  </select>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">价格（元）*</label>
+                  <input type="number" class="form-input" value="38" placeholder="请输入价格" />
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">库存数量 *</label>
+                  <input type="number" class="form-input" value="25" placeholder="请输入库存" />
+                </div>
+                
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label">菜品描述</label>
+                  <textarea class="form-textarea" placeholder="请输入菜品描述">川菜经典，香辣可口，鸡丁嫩滑配花生脆香，是一道深受欢迎的传统名菜。</textarea>
+                </div>
+                
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label">辣度选项（必选）</label>
+                  <div style="background: #FFF5F0; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; gap: 12px;">
+                      <input type="text" class="form-input" value="不辣" style="flex: 1;" />
+                      <input type="text" class="form-input" value="+¥0" style="width: 120px;" />
+                      <button class="btn btn-delete">删除</button>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                      <input type="text" class="form-input" value="微辣" style="flex: 1;" />
+                      <input type="text" class="form-input" value="+¥0" style="width: 120px;" />
+                      <button class="btn btn-delete">删除</button>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                      <input type="text" class="form-input" value="中辣" style="flex: 1;" />
+                      <input type="text" class="form-input" value="+¥0" style="width: 120px;" />
+                      <button class="btn btn-delete">删除</button>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                      <input type="text" class="form-input" value="特辣" style="flex: 1;" />
+                      <input type="text" class="form-input" value="+¥0" style="width: 120px;" />
+                      <button class="btn btn-delete">删除</button>
+                    </div>
+                    <button class="btn-add" style="background: var(--secondary);">+ 添加辣度选项</button>
+                  </div>
+                </div>
+                
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label">分量选项（可选）</label>
+                  <div style="background: #FFF5F0; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; gap: 12px;">
+                      <input type="text" class="form-input" value="标准份" style="flex: 1;" />
+                      <input type="text" class="form-input" value="+¥0" style="width: 120px;" />
+                      <button class="btn btn-delete">删除</button>
+                    </div>
+                    <div style="display: flex; gap: 12px;">
+                      <input type="text" class="form-input" value="大份" style="flex: 1;" />
+                      <input type="text" class="form-input" value="+¥5" style="width: 120px;" />
+                      <button class="btn btn-delete">删除</button>
+                    </div>
+                    <button class="btn-add" style="background: var(--secondary);">+ 添加分量选项</button>
+                  </div>
+                </div>
+              </div>
+                
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label class="form-label">加料选项（可选）</label>
+                <div style="background: #FFF5F0; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px;">
+                  <div style="display: flex; gap: 12px;">
+                    <input type="text" class="form-input" value="加花生" style="flex: 1;" />
+                    <input type="text" class="form-input" value="+¥3" style="width: 120px;" />
+                    <button class="btn btn-delete">删除</button>
+                  </div>
+                  <div style="display: flex; gap: 12px;">
+                    <input type="text" class="form-input" value="加鸡丁" style="flex: 1;" />
+                    <input type="text" class="form-input" value="+¥8" style="width: 120px;" />
+                    <button class="btn btn-delete">删除</button>
+                  </div>
+                  <div style="display: flex; gap: 12px;">
+                    <input type="text" class="form-input" value="加青椒" style="flex: 1;" />
+                    <input type="text" class="form-input" value="+¥5" style="width: 120px;" />
+                    <button class="btn btn-delete">删除</button>
+                  </div>
+                  <button class="btn-add" style="background: var(--secondary);">+ 添加加料选项</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6. 库存管理 -->
+      <div>
+        <div class="page-label">⑥ 库存管理页面</div>
+        <div class="page-section">
+          <div class="dashboard">
+            <div class="sidebar">
+              <div class="sidebar-header">导航菜单</div>
+              <div class="nav-menu">
+                <div class="nav-item">📊 数据仪表盘</div>
+                <div class="nav-item">📋 订单管理</div>
+                <div class="nav-item">🍜 菜品管理</div>
+                <div class="nav-item active">📦 库存管理</div>
+                <div class="nav-item">⚙️ 系统设置</div>
+              </div>
+            </div>
+            
+            <div class="main-content">
+              <div class="content-header">
+                <div class="content-title">库存管理</div>
+                <button class="btn-add">批量调整库存</button>
+              </div>
+              
+              <div class="filter-group" style="margin-bottom: 20px;">
+                <div class="filter-chip active">全部</div>
+                <div class="filter-chip">库存充足</div>
+                <div class="filter-chip">库存预警</div>
+                <div class="filter-chip">已售罄</div>
+              </div>
+              
+              <div class="stock-grid">
+                <div class="stock-card">
+                  <div class="stock-info">
+                    <div class="stock-name">宫保鸡丁</div>
+                    <div class="stock-meta">特色菜 · ¥38</div>
+                    <div class="stock-qty">当前库存: <span style="color: var(--success);">25份</span></div>
+                  </div>
+                  <div class="stock-actions">
+                    <div class="stock-status stock-normal">库存充足</div>
+                    <button class="btn btn-edit">调整库存</button>
+                  </div>
+                </div>
+                
+                <div class="stock-card">
+                  <div class="stock-info">
+                    <div class="stock-name">糖醋里脊</div>
+                    <div class="stock-meta">肉类 · ¥42</div>
+                    <div class="stock-qty">当前库存: <span style="color: var(--success);">18份</span></div>
+                  </div>
+                  <div class="stock-actions">
+                    <div class="stock-status stock-normal">库存充足</div>
+                    <button class="btn btn-edit">调整库存</button>
+                  </div>
+                </div>
+                
+                <div class="stock-card" style="border-color: var(--danger); background: #FFFBFA;">
+                  <div class="stock-info">
+                    <div class="stock-name">红烧肉</div>
+                    <div class="stock-meta">肉类 · ¥45</div>
+                    <div class="stock-qty">当前库存: <span style="color: var(--danger);">0份</span></div>
+                  </div>
+                  <div class="stock-actions">
+                    <div class="stock-status stock-out">已售罄</div>
+                    <button class="btn-add">立即补货</button>
+                  </div>
+                </div>
+                
+                <div class="stock-card">
+                  <div class="stock-info">
+                    <div class="stock-name">麻婆豆腐</div>
+                    <div class="stock-meta">素菜 · ¥28</div>
+                    <div class="stock-qty">当前库存: <span style="color: var(--success);">32份</span></div>
+                  </div>
+                  <div class="stock-actions">
+                    <div class="stock-status stock-normal">库存充足</div>
+                    <button class="btn btn-edit">调整库存</button>
+                  </div>
+                </div>
+                
+                <div class="stock-card" style="border-color: var(--warning); background: #FFFEF8;">
+                  <div class="stock-info">
+                    <div class="stock-name">鱼香肉丝</div>
+                    <div class="stock-meta">肉类 · ¥36</div>
+                    <div class="stock-qty">当前库存: <span style="color: var(--warning);">5份</span></div>
+                  </div>
+                  <div class="stock-actions">
+                    <div class="stock-status stock-low">库存预警</div>
+                    <button class="btn-add">补货</button>
+                  </div>
+                </div>
+                
+                <div class="stock-card">
+                  <div class="stock-info">
+                    <div class="stock-name">米饭</div>
+                    <div class="stock-meta">主食 · ¥4</div>
+                    <div class="stock-qty">当前库存: <span style="color: var(--success);">50份</span></div>
+                  </div>
+                  <div class="stock-actions">
+                    <div class="stock-status stock-normal">库存充足</div>
+                    <button class="btn btn-edit">调整库存</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. 店铺设置页面 -->
+      <div>
+        <div class="page-label">⑦ 店铺设置页面</div>
+        <div class="page-section">
+          <div class="dashboard">
+            <div class="sidebar">
+              <div class="sidebar-header">导航菜单</div>
+              <div class="nav-menu">
+                <div class="nav-item">📊 数据仪表盘</div>
+                <div class="nav-item">📋 订单管理</div>
+                <div class="nav-item">🍜 菜品管理</div>
+                <div class="nav-item">📦 库存管理</div>
+                <div class="nav-item active">⚙️ 店铺设置</div>
+              </div>
+            </div>
+            
+            <div class="main-content">
+              <div class="content-header">
+                <div class="content-title">店铺设置</div>
+              </div>
+              
+              <div class="form-grid">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <h3 style="color: var(--primary); margin-bottom: 20px;">基本信息</h3>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">店铺名称</label>
+                  <input type="text" class="form-input" value="美味餐厅" />
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">联系电话</label>
+                  <input type="text" class="form-input" value="138-0000-0000" />
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">营业开始时间</label>
+                  <input type="time" class="form-input" value="10:00" />
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">营业结束时间</label>
+                  <input type="time" class="form-input" value="22:00" />
+                </div>
+                
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label">店铺地址</label>
+                  <input type="text" class="form-input" value="XX市XX区XX街道XX号" />
+                </div>
+                
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <label class="form-label">店铺简介</label>
+                  <textarea class="form-textarea">专注地方特色美食，选用新鲜食材，为您提供健康美味的餐饮服务。</textarea>
+                </div>
+                
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <h3 style="color: var(--primary); margin: 20px 0;">营业状态</h3>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">当前状态</label>
+                  <div style="display: flex; gap: 12px; align-items: center;">
+                    <div style="padding: 12px 24px; background: #E8F5E9; color: var(--success); border-radius: 12px; font-weight: bold;">
+                      ● 营业中
+                    </div>
+                    <button class="btn-add" style="background: var(--warning);">切换至休息</button>
+                  </div>
+                </div>
+                
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <h3 style="color: var(--primary); margin: 20px 0;">菜品分类管理</h3>
+                </div>
+                
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <div class="table-container">
+                    <div class="table-header">
+                      <div class="table-title">分类列表</div>
+                      <button class="btn-add">+ 添加新分类</button>
+                    </div>
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>分类名称</th>
+                          <th>排序</th>
+                          <th>菜品数量</th>
+                          <th>状态</th>
+                          <th>操作</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><strong>特色菜</strong></td>
+                          <td>1</td>
+                          <td>5个菜品</td>
+                          <td><span class="status-badge status-completed">启用</span></td>
+                          <td>
+                            <div class="btn-group">
+                              <button class="btn btn-edit">编辑</button>
+                              <button class="btn btn-delete">删除</button>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><strong>肉类</strong></td>
+                          <td>2</td>
+                          <td>8个菜品</td>
+                          <td><span class="status-badge status-completed">启用</span></td>
+                          <td>
+                            <div class="btn-group">
+                              <button class="btn btn-edit">编辑</button>
+                              <button class="btn btn-delete">删除</button>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><strong>素菜</strong></td>
+                          <td>3</td>
+                          <td>6个菜品</td>
+                          <td><span class="status-badge status-completed">启用</span></td>
+                          <td>
+                            <div class="btn-group">
+                              <button class="btn btn-edit">编辑</button>
+                              <button class="btn btn-delete">删除</button>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><strong>酒水</strong></td>
+                          <td>4</td>
+                          <td>10个菜品</td>
+                          <td><span class="status-badge status-completed">启用</span></td>
+                          <td>
+                            <div class="btn-group">
+                              <button class="btn btn-edit">编辑</button>
+                              <button class="btn btn-delete">删除</button>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td><strong>主食</strong></td>
+                          <td>5</td>
+                          <td>3个菜品</td>
+                          <td><span class="status-badge status-completed">启用</span></td>
+                          <td>
+                            <div class="btn-group">
+                              <button class="btn btn-edit">编辑</button>
+                              <button class="btn btn-delete">删除</button>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                
+                <div class="form-group" style="grid-column: 1 / -1;">
+                  <h3 style="color: var(--primary); margin: 20px 0;">账户安全</h3>
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">管理员账号</label>
+                  <input type="text" class="form-input" value="admin" disabled />
+                </div>
+                
+                <div class="form-group">
+                  <label class="form-label">操作</label>
+                  <button class="btn-add" style="background: #E3F2FD; color: #1976D2;">修改密码</button>
+                </div>
+                
+                <div class="form-group" style="grid-column: 1 / -1; margin-top: 30px;">
+                  <div style="display: flex; gap: 16px; justify-content: flex-end;">
+                    <button class="btn-add" style="background: var(--danger);">退出登录</button>
+                    <button class="btn-add">保存设置</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
+

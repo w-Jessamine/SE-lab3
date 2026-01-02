@@ -1,0 +1,41 @@
+[MAIN]
+# 以项目根目录为基准运行 pylint（从而 app/ 可被正确导入）
+init-hook=
+    import os, sys; sys.path.insert(0, os.getcwd())
+
+# 忽略非 Python/非源码目录
+ignore=.venv,venv,__pycache__,.pytest_cache,build,dist
+ignore-patterns=.*\\.pyc$,.*\\.pyo$
+
+jobs=0
+recursive=yes
+fail-under=0
+
+[REPORTS]
+reports=no
+score=no
+output-format=json
+
+[MESSAGES CONTROL]
+# 课堂项目常见噪声：文档/命名/行宽等
+disable=
+    C0114,  # missing-module-docstring
+    C0115,  # missing-class-docstring
+    C0116,  # missing-function-docstring
+    C0103,  # invalid-name
+    C0301,  # line-too-long
+    R0903,  # too-few-public-methods
+    R0913,  # too-many-arguments
+    R0914,  # too-many-locals
+    R0915,  # too-many-statements
+    W0511,  # fixme
+
+[FORMAT]
+max-line-length=100
+
+[DESIGN]
+max-args=8
+max-locals=25
+max-statements=60
+
+

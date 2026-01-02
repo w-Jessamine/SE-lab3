@@ -1,0 +1,4 @@
+# file: /Users/w_jasmine/code/lab3/实验3_231220072_王佳铭/code/app/api/menu.py
+# hypothesis_version: 6.141.1
+
+[100, 404, '/api', '/categories', '/dishes', '/dishes/{dish_id}', '/stock', 'dish_id', 'stock', '分类ID（可选）', '每页数量', '菜品', '菜品ID', '菜品不存在', '页码']

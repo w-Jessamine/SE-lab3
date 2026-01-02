@@ -1,0 +1,18 @@
+# Bandit 配置（安全扫描）
+exclude_dirs:
+  - .venv
+  - venv
+  - .pytest_cache
+  - __pycache__
+  - app/static
+  - app/pages
+  - UI界面
+  - UML
+
+skips: []
+
+# 说明：
+# - 执行时仍建议用 `bandit -r app scripts -c bandit.yaml -f json`
+# - 不在配置里硬编码 targets，避免影响他处复用
+
+

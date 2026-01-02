@@ -1,0 +1,4 @@
+# file: /Users/w_jasmine/code/lab3/实验3_231220072_王佳铭/code/app/models/order.py
+# hypothesis_version: 6.141.1
+
+[500, 'Dish', 'OptionItem', 'Order', 'OrderItem', 'User', 'all, delete-orphan', 'dishes.dish_id', 'items', 'option_item_id', 'option_items.item_id', 'order', 'order_item_id', 'order_item_options', 'order_items', 'order_items.id', 'orders', 'orders.order_id', 'users.user_id']

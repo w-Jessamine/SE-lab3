@@ -1,0 +1,26 @@
+{
+  "1": {
+    "CWE": "CWE-710",
+    "name": "Coding Style Warning (import-outside-toplevel) but acceptable in context",
+    "File": "exp4_injected/app/db.py",
+    "Line": "38",
+    "At": "def init_db(): ... (imports inside function)",
+    "Information": "Pylint C0415 提示顶层之外 import；但此处常用于延迟导入/规避循环依赖，且不构成实际缺陷（更偏风格/结构建议）。"
+  },
+  "2": {
+    "CWE": "CWE-710",
+    "name": "Coding Style Warning (conditional import) but acceptable optimization",
+    "File": "exp4_injected/app/services/image_service.py",
+    "Line": "60",
+    "At": "import base64",
+    "Information": "Pylint C0415 提示 import-outside-toplevel；但仅在需要解码 b64 分支时导入，属于可接受的局部依赖与性能优化。"
+  },
+  "3": {
+    "CWE": "CWE-703",
+    "name": "Best-effort batch processing flagged as issue (try/except/continue)",
+    "File": "exp4_injected/app/services/image_service.py",
+    "Line": "82",
+    "At": "except Exception: ... continue",
+    "Information": "Bandit B112 报告 try/except/continue；若该批处理被设计为“尽力而为/不因单条失败中断”，在业务可接受前提下可视为非缺陷（但需要日志/监控配合）。"
+  }
+}

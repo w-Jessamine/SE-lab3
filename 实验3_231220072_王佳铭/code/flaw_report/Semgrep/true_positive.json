@@ -1,0 +1,10 @@
+{
+  "1": {
+    "CWE": "CWE-754",
+    "name": "gitlab.bandit.B101",
+    "File": "exp4_injected/app/services/exp4_experiment_service.py",
+    "Line": "60",
+    "At": "assert qty > 0",
+    "Information": "The application was found using `assert` in non-test code. Usually reserved for debug and test\ncode, the `assert`\nfunction is commonly used to test conditions before continuing execution. However, enclosed\ncode will be removed\nwhen compiling Python code to optimized byte code. Depending on the assertion and subsequent\nlogic, this could\nlead to undefined behavior of the application or application crashes.\n\nTo remediate this issue, remove the `assert` calls. If necessary, replace them with either `if`\nconditions or\n`try/except` blocks.\n\nExample using `try/except` instead of `assert`:\n```\n# Below try/except is equal to the assert statement of:\n# assert user.is_authenticated(), \"user must be authenticated\"\ntry:\n    if not user.is_authenticated():\n        raise AuthError(\"user must be authenticated\")\nexcept AuthError as e:\n    # Handle error\n    # ...\n    # Return, do not continue processing\n    return\n```\n"
+  }
+}

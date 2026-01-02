@@ -1,0 +1,4 @@
+# file: /Users/w_jasmine/code/lab3/实验3_231220072_王佳铭/code/app/main.py
+# hypothesis_version: 6.141.1
+
+['/', '/admin', '/checkout', '/health', '/order/{order_id}', '/static', '/test', '1.0.0', 'admin.html', 'app/pages', 'app/static', 'checkout.html', 'index.html', 'ok', 'order_detail.html', 'r', 'request', 'startup', 'static', 'status', 'test_frontend.html', 'utf-8', '点单程序网']
